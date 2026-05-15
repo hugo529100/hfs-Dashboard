@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes, viewport-fit=cover" />
+  <title>HFS Dashboard · Professional Monitoring</title>
+  <style>
+    :root {
+      --orange-bg: rgb(8, 5, 0);
+      --orange-text: #ff9900;
+      --orange-good-contrast: #ff9900;
+      --orange-button-bg-hover: #16141198;
+      --orange-button-text: #ff9900;
+      --orange-button-bg: rgb(17, 17, 15);
+      --orange-ghost-contrast: rgba(48, 48, 48, 0.36);
+      --orange-faint-contrast: rgba(106, 106, 106, 0.6);
+      --orange-mild-contrast: rgba(255, 153, 0, 0.09);
+      --orange-comment-contrast: rgba(158, 158, 158, 0.65);
+      --orange-grid-contrast: rgb(48, 48, 48);
+      --orange-focus-color: #ff9900;
+      --orange-text-high-contrast: #ff9900;
+      --orange-success: #0b0a09ab;
+      --orange-warning: #0b0a09ab;
+      --orange-link: #ff9900;
+      --orange-deepprevew: rgb(8, 7, 4);
+      --orange-disabled: rgba(128, 128, 128, 0.3);
+      --orange-inactive: rgba(255, 153, 0, 0.3);
+      --orange-danger: rgba(128, 128, 128, 0.3);
+      --orange-danger-hover: rgba(255, 153, 0, 0.3);
+      --orange-switch-track: rgba(255, 153, 0, 0.2);
+      --orange-switch-track-checked: #ff9900;
+      --orange-switch-thumb: #ff9900;
+      --orange-switch-thumb-disabled: rgba(128, 128, 128, 0.5);
+      forced-color-adjust: none;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background-color: var(--orange-bg);
+      color: var(--orange-text);
+      margin: 0;
+      padding: 0;
+      font-family: 'Consolas', 'Courier New', monospace;
+      min-height: 100vh;
+      font-size: 12px;
+      line-height: 1.2;
+      overflow-x: hidden;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    body::-webkit-scrollbar { display: none; }
+
+    .dashboard {
+      display: grid;
+      gap: 0;
+      max-width: 100%;
+      height: 100vh;
+      padding: 0;
+    }
+
+    @media (min-aspect-ratio: 4/3) {
+      .dashboard { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr; grid-template-areas: "col1 col2 col3"; }
+    }
+    @media (max-aspect-ratio: 4/3) {
+      .dashboard { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr; grid-template-areas: "col1 col2"; }
+    }
+
+    .col1 { grid-area: col1; display: flex; flex-direction: column; gap: 0; min-height: 0; overflow: hidden; }
+    .col2 { grid-area: col2; display: flex; flex-direction: column; gap: 0; min-height: 0; overflow: hidden; }
+    .col3 { grid-area: col3; display: flex; flex-direction: column; gap: 0; min-height: 0; overflow: hidden; }
+
+    .panel {
+      border: 1px solid var(--orange-grid-contrast);
+      padding: 2px 4px;
+      background: var(--orange-deepprevew);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+      margin: 0;
+    }
+
+    .panel h2 {
+      margin: 0;
+      border-bottom: 1px solid var(--orange-grid-contrast);
+      padding: 1px 4px;
+      color: var(--orange-text-high-contrast);
+      font-size: 11px;
+      flex-shrink: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: normal;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      user-select: none;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .panel-header-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      padding: 1px 2px;
+    }
+    .panel-header-left:hover { background: var(--orange-button-bg-hover); }
+
+    .scrollable {
+      overflow-y: auto;
+      overflow-x: auto;
+      flex: 1 1 auto;
+      min-height: 0;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .scrollable::-webkit-scrollbar { display: none; }
+
+    table { border-collapse: collapse; width: 100%; font-size: 10px; }
+    th, td {
+      border: 1px solid var(--orange-grid-contrast);
+      padding: 1px 4px;
+      text-align: left;
+      color: var(--orange-good-contrast);
+      word-break: break-word;
+      white-space: nowrap;
+    }
+    th {
+      background: var(--orange-button-bg);
+      color: var(--orange-text-high-contrast);
+      font-weight: normal;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .status-grid { display: grid; gap: 2px; }
+    .status-grid.single-col { grid-template-columns: 1fr; }
+    .status-grid.double-col { grid-template-columns: 1fr 1fr; }
+
+    .stat-card {
+      background: var(--orange-success);
+      padding: 2px 4px;
+      border-left: 2px solid var(--orange-good-contrast);
+    }
+    .stat-label { font-size: 8px; text-transform: uppercase; color: var(--orange-comment-contrast); letter-spacing: 0.3px; }
+    .stat-value { font-size: 11px; color: var(--orange-good-contrast); word-break: break-all; }
+    .stat-value.online { color: #ff9900; }
+    .stat-value.offline { color: #464646; }
+    .stat-value.uptime { color: #b0ff30; }
+
+    .label-card {
+      background: var(--orange-success);
+      padding: 2px 4px;
+      border-left: 2px solid var(--orange-good-contrast);
+    }
+    .label-card .stat-label { font-size: 8px; text-transform: uppercase; color: var(--orange-comment-contrast); letter-spacing: 0.3px; }
+    .label-card .stat-value { font-size: 11px; color: var(--orange-good-contrast); word-break: break-all; }
+
+    .disk-card {
+      background: var(--orange-success);
+      padding: 3px 6px;
+      border-left: 2px solid var(--orange-good-contrast);
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .disk-row { display: flex; align-items: center; gap: 6px; }
+    .disk-name { color: var(--orange-text-high-contrast); font-weight: bold; font-size: 11px; min-width: 20px; flex-shrink: 0; }
+    .disk-bar-bg { flex: 1; height: 8px; background: var(--orange-button-bg); border: 1px solid var(--orange-grid-contrast); position: relative; }
+    .disk-bar-fill { height: 100%; background: var(--orange-text); }
+    .disk-info { color: var(--orange-good-contrast); font-size: 9px; flex-shrink: 0; text-align: right; min-width: 10px; }
+
+    .network-grid { display: grid; gap: 2px; }
+    .network-grid.single-col { grid-template-columns: 1fr; }
+    .network-grid.double-col { grid-template-columns: 1fr 1fr; }
+
+    .log-container {
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 10px;
+      color: var(--orange-text);
+      line-height: 1.4;
+      white-space: pre-wrap;
+      word-break: break-all;
+      overflow-x: auto;
+      overflow-y: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .log-container::-webkit-scrollbar { display: none; }
+
+    .console-entry { padding: 0 2px; border-bottom: 1px solid var(--orange-grid-contrast); font-size: 11px; white-space: pre-wrap; word-break: break-all; }
+    .console-entry .ts { color: var(--orange-faint-contrast); font-size: 9px; }
+    .console-entry .msg { color: var(--orange-text); }
+    .console-entry .console-ip { color: #b0ff30; font-weight: bold; margin-right: 4px; }
+    .console-entry .console-ip::before { content: "["; color: var(--orange-comment-contrast); }
+    .console-entry .console-ip::after { content: "]"; color: var(--orange-comment-contrast); }
+    .console-entry.error .msg { color: #ffaa33; }
+    .console-entry.warning .msg { color: #ffaa33; }
+
+    .empty-msg { color: var(--orange-faint-contrast); font-style: normal; padding: 2px 4px; text-align: left; }
+
+    .panel-body-fill {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .panel-body-fill::-webkit-scrollbar { display: none; }
+
+    .mask-toggle-container { display: flex; align-items: center; gap: 4px; font-size: 9px; font-weight: normal; }
+    .mask-label-text { color: var(--orange-comment-contrast); }
+
+    .switch { position: relative; display: inline-block; width: 28px; height: 14px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+      background-color: var(--orange-switch-track); transition: 0.15s; border-radius: 14px;
+    }
+    .slider:before {
+      position: absolute; content: ""; height: 10px; width: 10px; left: 2px; bottom: 2px;
+      background-color: var(--orange-switch-thumb); transition: 0.15s; border-radius: 50%;
+    }
+    input:checked + .slider { background-color: var(--orange-switch-track-checked); }
+    input:checked + .slider:before { transform: translateX(14px); background-color: #0a0a0a; }
+
+    .access-log-line { font-family: monospace; font-size: 9px; padding: 0 2px; border-bottom: 1px solid var(--orange-grid-contrast); white-space: pre-wrap; word-break: break-all; line-height: 1.4; }
+    .access-log-line .time { color: var(--orange-faint-contrast); }
+    .access-log-line .ip-addr { color: #b0ff30; font-weight: bold; }
+    .access-log-line .ip-addr::before { content: "["; color: var(--orange-comment-contrast); }
+    .access-log-line .ip-addr::after { content: "]"; color: var(--orange-comment-contrast); }
+    .access-log-line .method { color: var(--orange-good-contrast); }
+    .access-log-line .uri { color: var(--orange-text); }
+    .access-log-line .status-ok { color: #888888; }
+    .access-log-line .status-err { color: #ffaa66; }
+    .access-log-line .user-tag { color: #888888; }
+    .access-log-line .user-tag::before { content: "["; }
+    .access-log-line .user-tag::after { content: "]"; }
+
+    .log-pause-toggle { display: flex; align-items: center; gap: 3px; font-size: 9px; font-weight: normal; }
+    .log-pause-toggle .switch { width: 24px; height: 12px; }
+    .log-pause-toggle .slider:before { height: 8px; width: 8px; left: 2px; bottom: 2px; }
+    .log-pause-toggle input:checked + .slider:before { transform: translateX(12px); }
+
+    .col1, .col2 {
+      min-height: 0;
+      height: 100%;
+    }
+    .countdown-text {
+      font-size: 9px;
+      color: var(--orange-faint-contrast);
+      margin-left: 6px;
+    }
+    .section-subtitle {
+      font-size: 8px;
+      text-transform: uppercase;
+      color: var(--orange-comment-contrast);
+      letter-spacing: 0.3px;
+      margin-bottom: 2px;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+<div class="dashboard" id="dashboardGrid">
+  <div class="col1" id="col1Container"></div>
+  <div class="col2" id="col2Container"></div>
+  <div class="col3" id="col3Container"></div>
+</div>
+
+<script>
+  (function() {
+    const CONFIG = {
+      REFRESH_STATUS: 3000,
+      REFRESH_DISKS: 30000,
+      REFRESH_NETWORK: 1000,
+      MAX_CONNECTIONS: 30,
+      MAX_LOGS: 100,
+      HASH_LENGTH: 16,
+      STORAGE_KEYS: {
+        MASK: 'hfs_mask_paths_enabled',
+        CJK: 'hfs_mask_cjk_enabled',
+        ACCESS_LIVE: 'hfs_access_live',
+        CONSOLE_LIVE: 'hfs_console_live',
+        CONNECTIONS_LIVE: 'hfs_connections_live',
+        DISKS_LIVE: 'hfs_disks_live',
+        NETWORK_LIVE: 'hfs_network_live',
+        NETWORK_CACHE: 'hfs_network_cache',
+        NETWORK_STARTED: 'hfs_network_started_cache',
+        DISKS_CACHE: 'hfs_disks_cache',
+        CONSOLE_CACHE: 'hfs_console_cache',
+        TRAFFIC_CACHE: 'hfs_traffic_cache'
+      }
+    };
+
+    function escapeHtml(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    async function api(path) { const res = await fetch(path, { credentials: 'include' }); if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); }
+
+    const MASK_EXTENSIONS = new Set(['mp3','wav','flac','ogg','aac','wma','m4a','opus','mp4','mkv','avi','mov','wmv','flv','webm','m4v','3gp','jpg','jpeg','png','gif','bmp','svg','webp','ico','tiff','html','htm','css','js','ts','jsx','tsx','json','xml','csv','pdf','doc','docx','xls','xlsx','ppt','pptx','txt','md','zip','rar','7z','tar','gz','bz2','xz']);
+    function simpleHash(str, len) { let hash=0; for(let i=0;i<str.length;i++){hash=((hash<<5)-hash)+str.charCodeAt(i);hash|=0;} let hex=(hash>>>0).toString(16).padStart(8,'0'); let extra=''; for(let i=0;i<str.length;i+=2) extra+=(str.charCodeAt(i)%16).toString(16); return (hex+extra).replace(/[^0-9a-f]/g,'0').substring(0,len).padEnd(len,'0'); }
+    const pathCache = new Map();
+    function getPathHash(fullPath, hashLen) { if(pathCache.has(fullPath)) return pathCache.get(fullPath); const h='['+simpleHash(fullPath,hashLen)+']'; pathCache.set(fullPath,h); return h; }
+    function extractFileName(p) { const i=Math.max(p.lastIndexOf('\\'),p.lastIndexOf('/')); return i>=0?p.substring(i+1):p; }
+    function maskCJK(s,r){ return typeof s==='string'?s.replace(/[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]/g,r):s; }
+    function shouldMaskPath(path){ if(!path) return false; const name=extractFileName(path); const dot=name.lastIndexOf('.'); return dot>0 && dot<name.length-1 && MASK_EXTENSIONS.has(name.substring(dot+1).toLowerCase()); }
+    function getDisplayFileName(fullPath, maskEnabled, cjkEnabled, cjkReplacement){ const name=extractFileName(fullPath); let p=cjkEnabled?maskCJK(name,cjkReplacement):name; if(!maskEnabled||!shouldMaskPath(fullPath)) return p.replace(/[\x00-\x1F\x7F]/g,''); const dot=p.lastIndexOf('.'); const ext=dot>0?p.substring(dot):''; return getPathHash(fullPath,CONFIG.HASH_LENGTH)+ext; }
+    function maskPathInText(text, maskEnabled, cjkEnabled, cjkReplacement){ if(typeof text!=='string') return text; if(!maskEnabled&&!cjkEnabled) return text; return text.split('\n').map(line=>{ if(cjkEnabled) line=maskCJK(line,cjkReplacement); if(!maskEnabled) return line; return line.replace(/([^\s"']+\.[a-zA-Z0-9]{1,10})/g,m=>{ if(/^https?:\/\//i.test(m)||/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/.test(m)) return m; return shouldMaskPath(m)?getDisplayFileName(m,true,cjkEnabled,cjkReplacement):m; }); }).join('\n'); }
+
+    function decodeUriSmart(uri) { if (!uri) return uri; try { return decodeURIComponent(uri); } catch(e) { return uri; } }
+
+    function loadPref(key,def){ try{ const v=localStorage.getItem(key); return v!==null?v:def; }catch(e){ return def; } }
+    function savePref(key,val){ try{ localStorage.setItem(key,String(val)); }catch(e){} }
+
+    let maskEnabled = loadPref(CONFIG.STORAGE_KEYS.MASK,'true')==='true';
+    let cjkEnabled = loadPref(CONFIG.STORAGE_KEYS.CJK,'true')==='true';
+    let cjkReplacement = '█';
+
+    let accessLogLive = loadPref(CONFIG.STORAGE_KEYS.ACCESS_LIVE,'true')==='true';
+    let consoleLogLive = loadPref(CONFIG.STORAGE_KEYS.CONSOLE_LIVE,'true')==='true';
+    let connectionsLive = loadPref(CONFIG.STORAGE_KEYS.CONNECTIONS_LIVE,'false')==='true';
+    let disksLive = loadPref(CONFIG.STORAGE_KEYS.DISKS_LIVE,'true')==='true';
+    let networkLive = loadPref(CONFIG.STORAGE_KEYS.NETWORK_LIVE,'false')==='true';
+
+    let accessEventSource = null, consoleEventSource = null, connectionsEventSource = null, trafficEventSource = null;
+    function closeEventSource(src) { if(src) { src.close(); src=null; } return null; }
+
+    function fetchOnceAccessLog() { 
+      fetch('/~/api/get_log?file=log', { credentials: 'include' }).then(res=>res.text()).then(txt=>{ 
+        const lines = txt.split('\n').filter(l=>l.trim());
+        if(lines.length) {
+          lines.forEach(line=>{ accessLogEntries.push(line); while(accessLogEntries.length>CONFIG.MAX_LOGS*2) accessLogEntries.shift(); });
+          if(accessLogLive) renderAccessLog();
+        }
+      }).catch(e=>console.warn); 
+    }
+    function fetchOnceConsoleLog() { 
+      fetch('/~/api/get_log?file=console', { credentials: 'include' }).then(res=>res.text()).then(txt=>{ 
+        const lines = txt.split('\n').filter(l=>l.trim());
+        if(lines.length) {
+          lines.forEach(line=>{ consoleLogEntries.push(line); while(consoleLogEntries.length>CONFIG.MAX_LOGS*2) consoleLogEntries.shift(); });
+          if(consoleLogLive) renderConsoleLog();
+        }
+      }).catch(e=>console.warn); 
+    }
+
+    function restartAccessStream() { if(accessEventSource) accessEventSource = closeEventSource(accessEventSource); if(accessLogLive) { accessEventSource = new EventSource('/~/api/get_log?file=log'); accessEventSource.onmessage = (e) => { if(e.data?.trim()){ accessLogEntries.push(e.data); while(accessLogEntries.length>CONFIG.MAX_LOGS*2) accessLogEntries.shift(); if(accessLogLive) renderAccessLog(); } }; accessEventSource.onerror = () => {}; } }
+    function restartConsoleStream() { if(consoleEventSource) consoleEventSource = closeEventSource(consoleEventSource); if(consoleLogLive) { consoleEventSource = new EventSource('/~/api/get_log?file=console'); consoleEventSource.onmessage = (e) => { if(e.data?.trim()){ consoleLogEntries.push(e.data); while(consoleLogEntries.length>CONFIG.MAX_LOGS*2) consoleLogEntries.shift(); if(consoleLogLive) renderConsoleLog(); } }; consoleEventSource.onerror = () => {}; } }
+    function restartConnectionsStream() { if(connectionsEventSource) connectionsEventSource = closeEventSource(connectionsEventSource); if(connectionsLive) { connectionsEventSource = new EventSource('/~/api/get_connections?'); connectionsEventSource.onmessage = (e) => { if(!connectionsLive) return; try{ const data=JSON.parse(e.data); if(!Array.isArray(data)) return; data.forEach(row=>{ const type=row[0],payload=row[1]; if(type==='ready'||type==='props'||!payload?.ip) return; const key=payload.ip+':'+(payload.port||'0'); if(type==='+') connectionMap.set(key,payload); else if(type==='=') Object.assign(connectionMap.get(key)||{},payload); else if(type==='-') connectionMap.delete(key); }); renderConnections(); }catch(err){} }; connectionsEventSource.onerror = () => {}; } }
+    function restartTrafficStream() { if(trafficEventSource) trafficEventSource = closeEventSource(trafficEventSource); if(networkLive) { trafficEventSource = new EventSource('/~/api/get_connection_stats?'); trafficEventSource.onmessage = e => { try{ const d=JSON.parse(e.data); if(d) updateTrafficFromEvent(d); } catch(err){} }; trafficEventSource.onerror = () => {}; } }
+
+    function setLiveStateAndReconfig(key, newValue, type) { savePref(key, newValue); switch(type) { case 'access': accessLogLive = newValue; restartAccessStream(); if(!accessLogLive) renderAccessLog(); else renderAccessLog(); break; case 'console': consoleLogLive = newValue; restartConsoleStream(); if(!consoleLogLive) renderConsoleLog(); else renderConsoleLog(); break; case 'connections': connectionsLive = newValue; restartConnectionsStream(); if(!connectionsLive) connectionMap.clear(); renderConnections(); break; case 'disks': disksLive = newValue; manageLiveIntervals(); if(!disksLive) refreshDisks(); else refreshDisks(); break; case 'network': networkLive = newValue; manageLiveIntervals(); restartTrafficStream(); if(!networkLive) refreshNetwork(true); else refreshNetwork(true); break; } }
+
+    function onMaskChange(e) { maskEnabled=e.target.checked; savePref(CONFIG.STORAGE_KEYS.MASK,maskEnabled); renderAccessLog(); renderConsoleLog(); }
+    function onCJKChange(e) { cjkEnabled=e.target.checked; savePref(CONFIG.STORAGE_KEYS.CJK,cjkEnabled); renderAccessLog(); renderConsoleLog(); }
+
+    const scrollState = new Map();
+    function setupScrollable(el){ if(!el) return; const s={autoScroll:true}; scrollState.set(el,s); el.addEventListener('scroll',()=>{ s.autoScroll=(el.scrollHeight-el.scrollTop-el.clientHeight)<20; }); }
+    function scrollToBottom(el){ const s=scrollState.get(el); if(s?.autoScroll && el) el.scrollTop=el.scrollHeight; }
+
+    let isNarrow=false, currentStarted=null;
+    function detectNarrow(){ return window.matchMedia('(max-aspect-ratio: 4/3)').matches; }
+    function buildLiveToggle(id, checked) { return `<span class="log-pause-toggle"><span class="mask-label-text">Live</span><label class="switch"><input type="checkbox" id="${id}" ${checked?'checked':''}><span class="slider"></span></label></span>`; }
+    function formatIp(ip){ if(!ip) return ''; if(ip==='127.0.0.1'||ip==='::1') return 'LO'; const parts=ip.split('.'); if(parts.length===4){ if(parts[0]==='192'&&parts[1]==='168'&&parts[2]==='1') return parts[3]; return parts[2]+'.'+parts[3]; } const shortIp = ip.replace(/^([0-9a-f:]+):.*$/i, '$1'); if(shortIp.length>12) return shortIp.substring(0,8)+'...'; return shortIp; }
+    function formatUptime(startedISO) { if(!startedISO) return '-'; const start=new Date(startedISO), now=new Date(), diff=Math.floor((now-start)/1000); const days=Math.floor(diff/86400), hours=Math.floor((diff%86400)/3600), mins=Math.floor((diff%3600)/60); if(days>0) return `${days}d ${hours}h ${mins}m`; if(hours>0) return `${hours}h ${mins}m`; return `${mins}m`; }
+
+    let statusCountdown = CONFIG.REFRESH_STATUS / 1000;
+    let diskCountdown = CONFIG.REFRESH_DISKS / 1000;
+    setInterval(() => {
+      statusCountdown = Math.max(0, statusCountdown - 1);
+      diskCountdown = Math.max(0, diskCountdown - 1);
+      const statusEl = document.getElementById('statusCountdown');
+      const diskEl = document.getElementById('diskCountdown');
+      if(statusEl) statusEl.textContent = `${statusCountdown}s`;
+      if(diskEl) diskEl.textContent = `${diskCountdown}s`;
+    }, 1000);
+
+    async function refreshStatus(){
+      try{ 
+        const d=await api('/~/api/get_status'); 
+        const c=document.getElementById('statusCards'); 
+        if(!c) return; 
+        const http=d.http||{}, https=d.https||{}, started=d.started||'', uptime=formatUptime(started); 
+        if(started && currentStarted!==started){ currentStarted=started; refreshNetwork(true); } 
+        
+        let serverTitle = 'LaqureLab';
+        let pluginsCount = 0;
+        let forceLang = 'en';
+        let forceHttps = false;
+        let deleteUnfinished = 86400;
+        let dontOverwrite = true;
+        
+        try {
+          const config = await api('/~/api/get_config');
+          if (config) {
+            serverTitle = config.title || serverTitle;
+            pluginsCount = Array.isArray(config.enable_plugins) ? config.enable_plugins.length : 0;
+            forceLang = config.force_lang || 'en';
+            forceHttps = config.force_https === true;
+            deleteUnfinished = config.delete_unfinished_uploads_after || 86400;
+            dontOverwrite = config.dont_overwrite_uploading === true;
+          }
+        } catch(e) { console.warn('config fetch failed', e); }
+
+        const cards=[
+          {label:'Server: ',value:serverTitle},
+          {label:'Version: ',value:d.version||'-'},
+          {label:'Uptime: ',value:uptime,cls:'uptime'},
+          {label:'Platform: ',value:d.platform||'-'},
+          {label:'HTTP: ',value:http.listening?'Port '+http.port:'Off',cls:http.listening?'online':'offline'},
+          {label:'HTTPS: ',value:https.listening?'Port '+https.port:'Off',cls:https.listening?'online':'offline'},
+          {label:'RAM: ',value:d.ram?(d.ram/1024/1024).toFixed(1)+' MB':'-'},
+          {label:'Config: ',value:d.configFile||'-'},
+          {label:'Update: ',value:d.updatePossible?'Yes':'No',cls:d.updatePossible?'online':''},
+          {label:'Plugins: ',value:pluginsCount},
+          {label:'Language: ',value:forceLang},
+          {label:'Force HTTPS: ',value:forceHttps?'Yes':'No'},
+          {label:'Unfinished Upload: ',value:deleteUnfinished+'s'},
+          {label:'Overwrite Protect: ',value:dontOverwrite?'On':'Off'}
+        ]; 
+        c.innerHTML=cards.map(c=>`<div class="stat-card"><span class="stat-label">${escapeHtml(c.label)}</span><span class="stat-value${c.cls?' '+c.cls:''}">${escapeHtml(c.value)}</span></div>`).join(''); 
+        statusCountdown = CONFIG.REFRESH_STATUS / 1000;
+      }catch(e){ 
+        const c=document.getElementById('statusCards'); 
+        if(c) c.innerHTML='<div class="stat-card"><span class="stat-value offline">Error</span></div>'; 
+      } 
+    }
+
+    function formatBytes(b){ if(b==null) return '-'; if(b>=1099511627776) return (b/1099511627776).toFixed(1)+' TB'; if(b>=1073741824) return (b/1073741824).toFixed(1)+' GB'; if(b>=1048576) return (b/1048576).toFixed(1)+' MB'; return (b/1024).toFixed(1)+' KB'; }
+    
+    async function refreshDisks() {
+      try {
+        const disks = await api('/~/api/get_disk_spaces');
+        const container = document.getElementById('diskContainer');
+        if (!container) return;
+        if (!Array.isArray(disks) || !disks.length) {
+          container.innerHTML = '<div style="color:var(--orange-faint-contrast);">No disk data</div>';
+          return;
+        }
+        container.innerHTML = disks.map(d => {
+          const total = d.total || 0;
+          const free = d.free || 0;
+          const used = total - free;
+          const pct = total > 0 ? (used / total * 100) : 0;
+          const freePercent = total > 0 ? (free / total * 100) : 100;
+          const freeFormatted = formatBytes(free);
+          return `<div class="disk-card">
+            <div class="disk-row">
+              <span class="disk-name">${escapeHtml(d.name || '?')}</span>
+              <div class="disk-bar-bg">
+                <div class="disk-bar-fill" style="width:${pct.toFixed(0)}%;"></div>
+              </div>
+              <span class="disk-info">${freeFormatted} (${freePercent.toFixed(0)}%)</span>
+            </div>
+          </div>`;
+        }).join('');
+        diskCountdown = CONFIG.REFRESH_DISKS / 1000;
+      } catch(e) {}
+    }
+
+    async function refreshNetwork(force=false){ 
+      const natEl = document.getElementById('natInfo'); 
+      if (!natEl) return;
+      
+      try { 
+        const nat = await api('/~/api/get_nat'); 
+        if (nat && Object.keys(nat).length) { 
+          natEl.innerHTML = Object.entries(nat).map(([k, v]) => {
+            const val = typeof v === 'object' ? JSON.stringify(v) : String(v);
+            return `<div class="label-card"><span class="stat-label">${escapeHtml(k)}: </span><span class="stat-value">${escapeHtml(val)}</span></div>`;
+          }).join(''); 
+        } else {
+          natEl.innerHTML = '<div class="label-card"><span class="stat-value">No NAT info</span></div>';
+        }
+      } catch(e) { 
+        natEl.innerHTML = '<div class="label-card"><span class="stat-value">NAT: unavailable</span></div>';
+      } 
+      
+      try {
+        const config = await api('/~/api/get_config');
+        if (config) {
+          const listenInterface = config.listen_interface || 'All interfaces';
+          const maxKbps = config.max_kbps !== null ? config.max_kbps + ' KB/s' : 'Unlimited';
+          const maxKbpsPerIp = config.max_kbps_per_ip !== null ? config.max_kbps_per_ip + ' KB/s' : 'Unlimited';
+          const limitsEl = document.getElementById('networkLimits');
+          if (limitsEl) {
+            limitsEl.innerHTML = '';
+            [
+              {label: 'IF', value: listenInterface},
+              {label: 'Limit', value: maxKbps},
+              {label: 'IP Limit', value: maxKbpsPerIp}
+            ].forEach(item => {
+              limitsEl.innerHTML += `<div class="label-card"><span class="stat-label">${item.label}: </span><span class="stat-value">${escapeHtml(item.value)}</span></div>`;
+            });
+          }
+        }
+      } catch(e) {}
+    }
+
+    function updateTrafficFromEvent(data){ 
+      const el = document.getElementById('trafficStats'); 
+      if (!el) return; 
+      const out = data.outSpeedKb !== undefined ? Number(data.outSpeedKb).toFixed(1) : '0';
+      const inn = data.inSpeedKb !== undefined ? Number(data.inSpeedKb).toFixed(1) : '0';
+      const conns = data.connections || 0;
+      const ips = data.ips || 0;
+      el.innerHTML = '';
+      [
+        {label: 'Out', value: out + ' KB/s'},
+        {label: 'In', value: inn + ' KB/s'},
+        {label: 'Conns', value: conns + ' (' + ips + ' IPs)'}
+      ].forEach(item => {
+        el.innerHTML += `<div class="label-card"><span class="stat-label">${item.label}: </span><span class="stat-value">${item.value}</span></div>`;
+      });
+    }
+
+    const connectionMap = new Map();
+    function renderConnections(){ const tbody=document.getElementById('connectionsBody'); if(!tbody) return; const entries=[...connectionMap.values()]; const narrow=isNarrow; if(!entries.length){ tbody.innerHTML=narrow?'<tr><td colspan="4" class="empty-msg">No connections</td></tr>':'<tr><td colspan="5" class="empty-msg">No active connections</td></tr>'; return; } 
+      tbody.innerHTML=entries.slice(-CONFIG.MAX_CONNECTIONS).map(item=>{ const ip=escapeHtml(formatIp(item.ip||'')); const user=escapeHtml(item.user||''); let path=(item.path||'').substring(0,45); if(maskEnabled||cjkEnabled) path=maskPathInText(path,maskEnabled,cjkEnabled,cjkReplacement); path=escapeHtml(path); const progress=item.opProgress!==undefined?(item.opProgress*100).toFixed(0)+'%':(item.op||'-'); const speed=item.outSpeedKb!==undefined?Number(item.outSpeedKb).toFixed(1):'0.0'; if(narrow) return `<tr><td>${ip}</td><td>${path}</td><td>${progress}</td><td>${speed}</td></tr>`; return `<tr><td>${ip}</td><td>${user}</td><td>${path}</td><td>${progress}</td><td>${speed}</td></tr>`; }).join(''); 
+    }
+
+    const accessLogEntries = [], consoleLogEntries = [];
+    function formatAccessLogEntry(raw){
+      try{
+        const arr = JSON.parse(raw);
+        if (!Array.isArray(arr)) {
+          return [escapeHtml(maskPathInText(raw, maskEnabled, cjkEnabled, cjkReplacement))];
+        }
+        return arr.map(item => {
+          if (Array.isArray(item) && item[0] === 'ready') {
+            return '<span style="color:var(--orange-text);">[Ready]</span>';
+          }
+          const d = Array.isArray(item) ? item[1] : null;
+          if (d && typeof d === 'object') {
+            const ts = d.ts ? new Date(d.ts).toLocaleTimeString() : '';
+            let ip = d.ip ? formatIp(d.ip) : '?';
+            const method = d.method || '';
+            let uri = decodeUriSmart(d.uri || '');
+            uri = maskPathInText(uri, maskEnabled, cjkEnabled, cjkReplacement);
+            const status = d.status || '';
+            const user = d.user ? `<span class="user-tag">${escapeHtml(d.user)}</span>` : '';
+            const statusClass = (status >= 400) ? 'status-err' : 'status-ok';
+            return `<span class="time">${ts}</span> <span class="ip-addr">${escapeHtml(ip)}</span> <span class="method">${escapeHtml(method)}</span> <span class="uri">${escapeHtml(uri)}</span> <span class="${statusClass}">${status}</span> ${user}`;
+          }
+          return escapeHtml(maskPathInText(JSON.stringify(item), maskEnabled, cjkEnabled, cjkReplacement));
+        });
+      } catch(e) {
+        return [escapeHtml(maskPathInText(raw, maskEnabled, cjkEnabled, cjkReplacement))];
+      }
+    }
+
+    function renderAccessLog() {
+      const container = document.getElementById('accessLogContainer');
+      if (!container) return;
+      if (!accessLogEntries.length) {
+        container.innerHTML = '<div class="empty-msg">Waiting...</div>';
+        return;
+      }
+      const lines = [];
+      accessLogEntries.slice(-CONFIG.MAX_LOGS).forEach(entry => {
+        const formatted = formatAccessLogEntry(entry);
+        if (Array.isArray(formatted)) lines.push(...formatted);
+        else lines.push(formatted);
+      });
+      container.innerHTML = lines.map(line => `<div class="access-log-line">${line}</div>`).join('');
+      if (document.getElementById('accessLogScroll')) scrollToBottom(document.getElementById('accessLogScroll'));
+    }
+
+    function renderConsoleLog() {
+      const container = document.getElementById('consoleLogContainer');
+      if (!container) return;
+      if (!consoleLogEntries.length) {
+        container.innerHTML = '<div class="empty-msg">Waiting...</div>';
+        return;
+      }
+      const lines = [];
+      consoleLogEntries.slice(-CONFIG.MAX_LOGS).forEach(raw => {
+        try {
+          const arr = JSON.parse(raw);
+          if (!Array.isArray(arr)) {
+            lines.push(escapeHtml(maskPathInText(raw, maskEnabled, cjkEnabled, cjkReplacement)));
+            return;
+          }
+          arr.forEach(item => {
+            if (Array.isArray(item) && item[1]?.ts) {
+              const d = item[1];
+              const ts = new Date(d.ts).toLocaleTimeString();
+              let msg = d.msg || '';
+              msg = maskPathInText(msg, maskEnabled, cjkEnabled, cjkReplacement);
+              let ipPart = '';
+              if (d.ip) ipPart = `<span class="console-ip">${escapeHtml(formatIp(d.ip))}</span> `;
+              const k = d.k || 'log';
+              const cls = k === 'error' ? 'error' : (k === 'warning' ? 'warning' : '');
+              lines.push(`<div class="console-entry ${cls}"><span class="ts">${ts}</span> ${ipPart}<span class="msg">${escapeHtml(msg)}</span></div>`);
+            } else {
+              lines.push(escapeHtml(maskPathInText(JSON.stringify(item), maskEnabled, cjkEnabled, cjkReplacement)));
+            }
+          });
+        } catch(e) {
+          lines.push(escapeHtml(maskPathInText(raw, maskEnabled, cjkEnabled, cjkReplacement)));
+        }
+      });
+      container.innerHTML = lines.join('');
+      if (document.getElementById('consoleLogScroll')) scrollToBottom(document.getElementById('consoleLogScroll'));
+    }
+
+    let diskInterval, networkInterval;
+    function manageLiveIntervals(){ 
+      clearInterval(diskInterval); 
+      clearInterval(networkInterval); 
+      if(disksLive) diskInterval=setInterval(refreshDisks,CONFIG.REFRESH_DISKS); 
+      if(networkLive) networkInterval=setInterval(()=>refreshNetwork(false),CONFIG.REFRESH_NETWORK); 
+    }
+
+    function buildLayout() {
+      const narrow = detectNarrow(); isNarrow=narrow;
+      const col1=document.getElementById('col1Container'), col2=document.getElementById('col2Container'), col3=document.getElementById('col3Container');
+      const maskHtml = `<div class="mask-toggle-container"><span class="mask-label-text">Mask</span><label class="switch"><input type="checkbox" id="maskToggle" ${maskEnabled?'checked':''}><span class="slider"></span></label><span class="mask-label-text">CJK</span><label class="switch"><input type="checkbox" id="cjkToggle" ${cjkEnabled?'checked':''}><span class="slider"></span></label></div>`;
+      const statusGridClass=narrow?'single-col':'double-col', networkGridClass=narrow?'single-col':'double-col';
+      const statusHeaderHtml = `<span class="panel-header-left" id="statusHeaderBtn">HFS Status <span class="countdown-text" id="statusCountdown">${statusCountdown}s</span></span>`;
+      const diskHeaderHtml = `<div style="display:flex;justify-content:space-between;align-items:center;padding:2px 4px;"><span style="color:var(--orange-comment-contrast);font-size:8px;text-transform:uppercase;">Disks-free <span class="countdown-text" id="diskCountdown">${diskCountdown}s</span></span>${buildLiveToggle('disksLiveToggle',disksLive)}</div>`;
+
+      if(!narrow) {
+        col1.innerHTML = `<div class="panel"><h2>${statusHeaderHtml}${maskHtml}</h2><div class="status-grid ${statusGridClass}" id="statusCards"></div><div id="diskSection" style="padding:2px;">${diskHeaderHtml}<div id="diskContainer"></div></div></div><div class="panel"><h2>Network Info ${buildLiveToggle('networkLiveToggle',networkLive)}</h2><div class="network-grid ${networkGridClass}" id="networkCards"><div><span class="section-subtitle">NAT</span><div id="natInfo">loading...</div></div><div><span class="section-subtitle">Traffic</span><div id="trafficStats">-</div><span class="section-subtitle" style="margin-top:4px;">Limits</span><div id="networkLimits">-</div></div></div></div><div class="panel"><h2>Live Connections ${buildLiveToggle('connectionsLiveToggle',connectionsLive)}</h2><div class="panel-body-fill" id="connectionsScroll"><table><thead><tr><th>IP</th><th>User</th><th>Path</th><th>Prog</th><th>KB/s</th></tr></thead><tbody id="connectionsBody"><tr><td colspan="5" class="empty-msg">No active connections</td></tr></tbody></table></div></div>`;
+        col2.innerHTML = `<div class="panel"><h2>Console Log ${buildLiveToggle('consoleLiveToggle',consoleLogLive)}</h2><div class="panel-body-fill log-container" id="consoleLogScroll"><div id="consoleLogContainer" class="empty-msg">Waiting...</div></div></div>`;
+        col3.innerHTML = `<div class="panel"><h2>Access Log ${buildLiveToggle('accessLiveToggle',accessLogLive)}</h2><div class="panel-body-fill" id="accessLogScroll"><div id="accessLogContainer">Waiting...</div></div></div>`;
+        col3.style.display = '';
+      } else {
+        col1.innerHTML = `<div style="display:flex; flex-direction:column; height:100%; gap:0;">
+          <div class="panel" style="flex:0 0 auto;"><h2>${statusHeaderHtml}${maskHtml}</h2><div class="status-grid ${statusGridClass}" id="statusCards"></div><div id="diskSection" style="padding:2px;">${diskHeaderHtml}<div id="diskContainer"></div></div></div>
+          <div class="panel" style="flex:0 0 auto;"><h2>Network Info ${buildLiveToggle('networkLiveToggle',networkLive)}</h2><div class="network-grid ${networkGridClass}" id="networkCards"><div><span class="section-subtitle">NAT</span><div id="natInfo">loading...</div></div><div><span class="section-subtitle">Traffic</span><div id="trafficStats">-</div><span class="section-subtitle" style="margin-top:4px;">Limits</span><div id="networkLimits">-</div></div></div></div>
+          <div class="panel" style="flex:1 1 auto; min-height:80px;"><h2>Live Connections ${buildLiveToggle('connectionsLiveToggle',connectionsLive)}</h2><div class="panel-body-fill" id="connectionsScroll"><table><thead><tr><th>IP</th><th>Path</th><th>Prog</th><th>KB/s</th></tr></thead><tbody id="connectionsBody"><tr><td colspan="4" class="empty-msg">No connections</td></tr></tbody></table></div></div>
+        </div>`;
+        col2.innerHTML = `<div style="display:flex; flex-direction:column; height:100%; gap:0;">
+          <div class="panel" style="flex:1 1 auto; min-height:40%;"><h2>Console Log ${buildLiveToggle('consoleLiveToggle',consoleLogLive)}</h2><div class="panel-body-fill log-container" id="consoleLogScroll"><div id="consoleLogContainer" class="empty-msg">Waiting...</div></div></div>
+          <div class="panel" style="flex:1 1 auto; min-height:50%;"><h2>Access Log ${buildLiveToggle('accessLiveToggle',accessLogLive)}</h2><div class="panel-body-fill" id="accessLogScroll"><div id="accessLogContainer">Waiting...</div></div></div>
+        </div>`;
+        col3.style.display = 'none';
+      }
+      document.getElementById('statusHeaderBtn')?.addEventListener('click',(e)=>{ if(e.target.closest('.switch')) return; if (!document.fullscreenElement) document.documentElement.requestFullscreen?.(); else document.exitFullscreen?.(); });
+      document.getElementById('maskToggle')?.addEventListener('change',onMaskChange);
+      document.getElementById('cjkToggle')?.addEventListener('change',onCJKChange);
+      document.getElementById('accessLiveToggle')?.addEventListener('change',(e)=>setLiveStateAndReconfig(CONFIG.STORAGE_KEYS.ACCESS_LIVE, e.target.checked, 'access'));
+      document.getElementById('consoleLiveToggle')?.addEventListener('change',(e)=>setLiveStateAndReconfig(CONFIG.STORAGE_KEYS.CONSOLE_LIVE, e.target.checked, 'console'));
+      document.getElementById('connectionsLiveToggle')?.addEventListener('change',(e)=>setLiveStateAndReconfig(CONFIG.STORAGE_KEYS.CONNECTIONS_LIVE, e.target.checked, 'connections'));
+      document.getElementById('disksLiveToggle')?.addEventListener('change',(e)=>setLiveStateAndReconfig(CONFIG.STORAGE_KEYS.DISKS_LIVE, e.target.checked, 'disks'));
+      document.getElementById('networkLiveToggle')?.addEventListener('change',(e)=>setLiveStateAndReconfig(CONFIG.STORAGE_KEYS.NETWORK_LIVE, e.target.checked, 'network'));
+      setupScrollable(document.getElementById('connectionsScroll'));
+      setupScrollable(document.getElementById('accessLogScroll'));
+      setupScrollable(document.getElementById('consoleLogScroll'));
+      renderConnections();
+    }
+
+    function init(){ 
+      buildLayout(); 
+      refreshStatus(); 
+      refreshDisks(); 
+      refreshNetwork(true); 
+      fetchOnceAccessLog(); 
+      fetchOnceConsoleLog(); 
+      setInterval(refreshStatus, CONFIG.REFRESH_STATUS); 
+      manageLiveIntervals(); 
+      restartConnectionsStream(); 
+      restartAccessStream(); 
+      restartConsoleStream(); 
+      restartTrafficStream(); 
+      setTimeout(()=>renderConnections(),500); 
+      window.addEventListener('resize',()=>{ if(detectNarrow()!==isNarrow) { buildLayout(); renderAccessLog(); renderConsoleLog(); renderConnections(); } }); 
+    }
+    init();
+  })();
+</script>
+</body>
+</html>
