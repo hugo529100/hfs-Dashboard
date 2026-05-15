@@ -1,4 +1,4 @@
-exports.version = 1.0
+exports.version = 1.4
 exports.apiRequired = 8.87
 exports.description = "Admin dashboard page. Access via http://your-ip/dashboard or /dashboard.html (admin login required)."
 exports.repo = "Hug3O/Dashboard"

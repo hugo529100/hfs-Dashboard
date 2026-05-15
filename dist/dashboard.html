@@ -39,25 +39,18 @@
     body {
       background-color: var(--orange-bg);
       color: var(--orange-text);
-      margin: 0;
-      padding: 0;
+      margin: 0; padding: 0;
       font-family: 'Consolas', 'Courier New', monospace;
       min-height: 100vh;
-      font-size: 12px;
-      line-height: 1.2;
+      font-size: 12px; line-height: 1.2;
       overflow-x: hidden;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
+      scrollbar-width: none; -ms-overflow-style: none;
     }
-
     body::-webkit-scrollbar { display: none; }
 
     .dashboard {
-      display: grid;
-      gap: 0;
-      max-width: 100%;
-      height: 100vh;
-      padding: 0;
+      display: grid; gap: 0;
+      max-width: 100%; height: 100vh; padding: 0;
     }
 
     @media (min-aspect-ratio: 4/3) {
@@ -67,7 +60,8 @@
       .dashboard { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr; grid-template-areas: "col1 col2"; }
     }
 
-    .col1 { grid-area: col1; display: flex; flex-direction: column; gap: 0; min-height: 0; overflow: hidden; }
+    .col1 { grid-area: col1; display: flex; flex-direction: column; gap: 0; min-height: 0; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; -ms-overflow-style: none; }
+    .col1::-webkit-scrollbar { display: none; }
     .col2 { grid-area: col2; display: flex; flex-direction: column; gap: 0; min-height: 0; overflow: hidden; }
     .col3 { grid-area: col3; display: flex; flex-direction: column; gap: 0; min-height: 0; overflow: hidden; }
 
@@ -75,11 +69,8 @@
       border: 1px solid var(--orange-grid-contrast);
       padding: 2px 4px;
       background: var(--orange-deepprevew);
-      display: flex;
-      flex-direction: column;
-      min-height: 0;
-      overflow: hidden;
-      margin: 0;
+      display: flex; flex-direction: column;
+      min-height: 0; overflow: hidden; margin: 0;
     }
 
     .panel h2 {
@@ -87,54 +78,36 @@
       border-bottom: 1px solid var(--orange-grid-contrast);
       padding: 1px 4px;
       color: var(--orange-text-high-contrast);
-      font-size: 11px;
-      flex-shrink: 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-weight: normal;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      user-select: none;
-      gap: 4px;
-      flex-wrap: wrap;
+      font-size: 11px; flex-shrink: 0;
+      display: flex; justify-content: space-between; align-items: center;
+      font-weight: normal; text-transform: uppercase; letter-spacing: 0.5px;
+      user-select: none; gap: 4px; flex-wrap: wrap;
     }
 
     .panel-header-left {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-      padding: 1px 2px;
+      display: flex; align-items: center; gap: 6px;
+      cursor: pointer; padding: 1px 2px;
     }
     .panel-header-left:hover { background: var(--orange-button-bg-hover); }
 
     .scrollable {
-      overflow-y: auto;
-      overflow-x: auto;
-      flex: 1 1 auto;
-      min-height: 0;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
+      overflow-y: auto; overflow-x: auto;
+      flex: 1 1 auto; min-height: 0;
+      scrollbar-width: none; -ms-overflow-style: none;
     }
     .scrollable::-webkit-scrollbar { display: none; }
 
     table { border-collapse: collapse; width: 100%; font-size: 10px; }
     th, td {
       border: 1px solid var(--orange-grid-contrast);
-      padding: 1px 4px;
-      text-align: left;
+      padding: 1px 4px; text-align: left;
       color: var(--orange-good-contrast);
-      word-break: break-word;
-      white-space: nowrap;
+      word-break: break-word; white-space: nowrap;
     }
     th {
       background: var(--orange-button-bg);
       color: var(--orange-text-high-contrast);
-      font-weight: normal;
-      position: sticky;
-      top: 0;
-      z-index: 1;
+      font-weight: normal; position: sticky; top: 0; z-index: 1;
     }
 
     .status-grid { display: grid; gap: 2px; }
@@ -164,9 +137,7 @@
       background: var(--orange-success);
       padding: 3px 6px;
       border-left: 2px solid var(--orange-good-contrast);
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
+      display: flex; flex-direction: column; gap: 3px;
     }
     .disk-row { display: flex; align-items: center; gap: 6px; }
     .disk-name { color: var(--orange-text-high-contrast); font-weight: bold; font-size: 11px; min-width: 20px; flex-shrink: 0; }
@@ -180,15 +151,10 @@
 
     .log-container {
       font-family: 'Consolas', 'Courier New', monospace;
-      font-size: 10px;
-      color: var(--orange-text);
-      line-height: 1.4;
-      white-space: pre-wrap;
-      word-break: break-all;
-      overflow-x: auto;
-      overflow-y: auto;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
+      font-size: 10px; color: var(--orange-text); line-height: 1.4;
+      white-space: pre-wrap; word-break: break-all;
+      overflow-x: auto; overflow-y: auto;
+      scrollbar-width: none; -ms-overflow-style: none;
     }
     .log-container::-webkit-scrollbar { display: none; }
 
@@ -204,12 +170,9 @@
     .empty-msg { color: var(--orange-faint-contrast); font-style: normal; padding: 2px 4px; text-align: left; }
 
     .panel-body-fill {
-      flex: 1 1 auto;
-      min-height: 0;
-      overflow-y: auto;
-      overflow-x: auto;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
+      flex: 1 1 auto; min-height: 0;
+      overflow-y: auto; overflow-x: auto;
+      scrollbar-width: none; -ms-overflow-style: none;
     }
     .panel-body-fill::-webkit-scrollbar { display: none; }
 
@@ -247,23 +210,9 @@
     .log-pause-toggle .slider:before { height: 8px; width: 8px; left: 2px; bottom: 2px; }
     .log-pause-toggle input:checked + .slider:before { transform: translateX(12px); }
 
-    .col1, .col2 {
-      min-height: 0;
-      height: 100%;
-    }
-    .countdown-text {
-      font-size: 9px;
-      color: var(--orange-faint-contrast);
-      margin-left: 6px;
-    }
-    .section-subtitle {
-      font-size: 8px;
-      text-transform: uppercase;
-      color: var(--orange-comment-contrast);
-      letter-spacing: 0.3px;
-      margin-bottom: 2px;
-      display: block;
-    }
+    .countdown-text { font-size: 9px; color: var(--orange-faint-contrast); margin-left: 6px; }
+    .section-subtitle { font-size: 8px; text-transform: uppercase; color: var(--orange-comment-contrast); letter-spacing: 0.3px; margin-bottom: 2px; display: block; }
+    .header-controls { display: flex; align-items: center; gap: 8px; }
   </style>
 </head>
 <body>
@@ -274,405 +223,406 @@
 </div>
 
 <script>
-  (function() {
-    const CONFIG = {
-      REFRESH_STATUS: 3000,
-      REFRESH_DISKS: 30000,
-      REFRESH_NETWORK: 1000,
-      MAX_CONNECTIONS: 30,
-      MAX_LOGS: 100,
-      HASH_LENGTH: 16,
-      STORAGE_KEYS: {
-        MASK: 'hfs_mask_paths_enabled',
-        CJK: 'hfs_mask_cjk_enabled',
-        ACCESS_LIVE: 'hfs_access_live',
-        CONSOLE_LIVE: 'hfs_console_live',
-        CONNECTIONS_LIVE: 'hfs_connections_live',
-        DISKS_LIVE: 'hfs_disks_live',
-        NETWORK_LIVE: 'hfs_network_live',
-        NETWORK_CACHE: 'hfs_network_cache',
-        NETWORK_STARTED: 'hfs_network_started_cache',
-        DISKS_CACHE: 'hfs_disks_cache',
-        CONSOLE_CACHE: 'hfs_console_cache',
-        TRAFFIC_CACHE: 'hfs_traffic_cache'
-      }
+(function() {
+  // ==================== CONFIG ====================
+  const CONF = {
+    REFRESH_STATUS: 3000,
+    REFRESH_DISKS: 30000,
+    REFRESH_NETWORK: 1000,
+    MAX_CONNECTIONS: 30,
+    MAX_LOGS: 100,
+    HASH_LEN: 16,
+    PRELOAD_TIMEOUT: 2000,
+    PRELOAD_MAX: 100,
+    KEYS: {
+      MASK: 'hfs_mask', CJK: 'hfs_cjk',
+      STATUS: 'hfs_status_live', ACCESS: 'hfs_access_live',
+      CONSOLE: 'hfs_console_live', CONNS: 'hfs_conns_live',
+      DISKS: 'hfs_disks_live', NET: 'hfs_net_live'
+    }
+  };
+
+  // ==================== UTILS ====================
+  const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const api = async p => { const r = await fetch(p, { credentials: 'include' }); if (!r.ok) throw Error('HTTP '+r.status); return r.json(); };
+  const prefl = (k, d) => { try { const v = localStorage.getItem(k); return v !== null ? v : d; } catch(e) { return d; } };
+  const spref = (k, v) => { try { localStorage.setItem(k, String(v)); } catch(e) {} };
+
+  // mask
+  const MASK_EXTS = new Set(['mp3','wav','flac','ogg','aac','wma','m4a','opus','mp4','mkv','avi','mov','wmv','flv','webm','m4v','3gp','jpg','jpeg','png','gif','bmp','svg','webp','ico','tiff','html','htm','css','js','ts','jsx','tsx','json','xml','csv','pdf','doc','docx','xls','xlsx','ppt','pptx','txt','md','zip','rar','7z','tar','gz','bz2','xz']);
+  const shash = (s, n) => { let h=0; for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;} let x=(h>>>0).toString(16).padStart(8,'0'); for(let i=0;i<s.length;i+=2)x+=(s.charCodeAt(i)%16).toString(16); return (x.replace(/[^0-9a-f]/g,'0')).substring(0,n).padEnd(n,'0'); };
+  const pcache = new Map();
+  const phash = (p, n) => { if(pcache.has(p)) return pcache.get(p); const h='['+shash(p,n)+']'; pcache.set(p,h); return h; };
+  const fname = p => { const i=Math.max(p.lastIndexOf('\\'),p.lastIndexOf('/')); return i>=0?p.substring(i+1):p; };
+  const mCJK = (s,r) => typeof s==='string'?s.replace(/[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]/g,r):s;
+  const smask = p => { if(!p) return false; const n=fname(p), d=n.lastIndexOf('.'); return d>0 && d<n.length-1 && MASK_EXTS.has(n.substring(d+1).toLowerCase()); };
+  const mpath = (t, me, ce, cr) => {
+    if(typeof t!=='string') return t; if(!me&&!ce) return t;
+    return t.split('\n').map(l=>{
+      if(ce) l=mCJK(l,cr); if(!me) return l;
+      return l.replace(/([^\s"']+\.[a-zA-Z0-9]{1,10})/g,m=>{
+        if(/^https?:\/\//i.test(m)||/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/.test(m)) return m;
+        return smask(m)?phash(m,CONF.HASH_LEN)+m.substring(m.lastIndexOf('.')):m;
+      });
+    }).join('\n');
+  };
+  const duri = u => { if(!u) return u; try { return decodeURIComponent(u); } catch(e) { return u; } };
+
+  // ==================== STATE ====================
+  let maskOn = prefl(CONF.KEYS.MASK,'true')==='true';
+  let cjkOn = prefl(CONF.KEYS.CJK,'true')==='true';
+  const cjkR = '█';
+
+  let liveS = prefl(CONF.KEYS.STATUS,'true')==='true';
+  let liveA = prefl(CONF.KEYS.ACCESS,'true')==='true';
+  let liveC = prefl(CONF.KEYS.CONSOLE,'true')==='true';
+  let liveConn = prefl(CONF.KEYS.CONNS,'false')==='true';
+  let liveD = prefl(CONF.KEYS.DISKS,'true')==='true';
+  let liveN = prefl(CONF.KEYS.NET,'false')==='true';
+
+  let cfgCache = null;
+  let intS = null, intD = null, intN = null;
+  let esA = null, esC = null, esConn = null, esNet = null;
+  const tmpSSE = new Set();
+
+  // ==================== SSE UTILS ====================
+  const closeES = s => { if(s){ s.onmessage=null; s.onerror=null; s.close(); } return null; };
+  const addTmp = s => { tmpSSE.add(s); return s; };
+  const rmTmp = s => { tmpSSE.delete(s); return null; };
+  const closeTmp = s => { s.onmessage=null; s.onerror=null; s.close(); rmTmp(s); };
+
+  const cleanup = () => {
+    esA=closeES(esA); esC=closeES(esC); esConn=closeES(esConn); esNet=closeES(esNet);
+    tmpSSE.forEach(s=>{ s.onmessage=null; s.onerror=null; s.close(); }); tmpSSE.clear();
+    clearInterval(intS); clearInterval(intD); clearInterval(intN);
+  };
+  window.addEventListener('beforeunload', cleanup);
+
+  // ==================== CONFIG CACHE ====================
+  async function getCfg() {
+    if (cfgCache) return cfgCache;
+    try { cfgCache = await api('/~/api/get_config'); return cfgCache; } catch(e) { return null; }
+  }
+  function clrCfg() { cfgCache = null; }
+
+  // ==================== LOG PRELOAD ====================
+  function preloadLog(file, arr, renderFn) {
+    arr.length = 0;
+    const src = new EventSource('/~/api/get_log?file='+file);
+    addTmp(src); let n = 0;
+    const done = () => { closeTmp(src); renderFn(); };
+    src.onmessage = e => {
+      if (e.data?.trim()) { arr.push(e.data); n++; if (n >= CONF.PRELOAD_MAX) done(); }
     };
+    src.onerror = () => done();
+    setTimeout(() => { if (tmpSSE.has(src)) done(); }, CONF.PRELOAD_TIMEOUT);
+  }
 
-    function escapeHtml(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-    async function api(path) { const res = await fetch(path, { credentials: 'include' }); if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); }
+  function preloadTraffic() {
+    const src = new EventSource('/~/api/get_connection_stats?');
+    addTmp(src); let ok = false;
+    const done = () => { closeTmp(src); };
+    src.onmessage = e => {
+      if (ok) return;
+      try { const d=JSON.parse(e.data); if(d){ ok=true; updateTraffic(d); done(); } } catch(err) {}
+    };
+    src.onerror = () => done();
+    setTimeout(() => { if (tmpSSE.has(src)) done(); }, 2000);
+  }
 
-    const MASK_EXTENSIONS = new Set(['mp3','wav','flac','ogg','aac','wma','m4a','opus','mp4','mkv','avi','mov','wmv','flv','webm','m4v','3gp','jpg','jpeg','png','gif','bmp','svg','webp','ico','tiff','html','htm','css','js','ts','jsx','tsx','json','xml','csv','pdf','doc','docx','xls','xlsx','ppt','pptx','txt','md','zip','rar','7z','tar','gz','bz2','xz']);
-    function simpleHash(str, len) { let hash=0; for(let i=0;i<str.length;i++){hash=((hash<<5)-hash)+str.charCodeAt(i);hash|=0;} let hex=(hash>>>0).toString(16).padStart(8,'0'); let extra=''; for(let i=0;i<str.length;i+=2) extra+=(str.charCodeAt(i)%16).toString(16); return (hex+extra).replace(/[^0-9a-f]/g,'0').substring(0,len).padEnd(len,'0'); }
-    const pathCache = new Map();
-    function getPathHash(fullPath, hashLen) { if(pathCache.has(fullPath)) return pathCache.get(fullPath); const h='['+simpleHash(fullPath,hashLen)+']'; pathCache.set(fullPath,h); return h; }
-    function extractFileName(p) { const i=Math.max(p.lastIndexOf('\\'),p.lastIndexOf('/')); return i>=0?p.substring(i+1):p; }
-    function maskCJK(s,r){ return typeof s==='string'?s.replace(/[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]/g,r):s; }
-    function shouldMaskPath(path){ if(!path) return false; const name=extractFileName(path); const dot=name.lastIndexOf('.'); return dot>0 && dot<name.length-1 && MASK_EXTENSIONS.has(name.substring(dot+1).toLowerCase()); }
-    function getDisplayFileName(fullPath, maskEnabled, cjkEnabled, cjkReplacement){ const name=extractFileName(fullPath); let p=cjkEnabled?maskCJK(name,cjkReplacement):name; if(!maskEnabled||!shouldMaskPath(fullPath)) return p.replace(/[\x00-\x1F\x7F]/g,''); const dot=p.lastIndexOf('.'); const ext=dot>0?p.substring(dot):''; return getPathHash(fullPath,CONFIG.HASH_LENGTH)+ext; }
-    function maskPathInText(text, maskEnabled, cjkEnabled, cjkReplacement){ if(typeof text!=='string') return text; if(!maskEnabled&&!cjkEnabled) return text; return text.split('\n').map(line=>{ if(cjkEnabled) line=maskCJK(line,cjkReplacement); if(!maskEnabled) return line; return line.replace(/([^\s"']+\.[a-zA-Z0-9]{1,10})/g,m=>{ if(/^https?:\/\//i.test(m)||/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/.test(m)) return m; return shouldMaskPath(m)?getDisplayFileName(m,true,cjkEnabled,cjkReplacement):m; }); }).join('\n'); }
+  // ==================== LIVE STREAMS ====================
+  function startAccess() {
+    esA = closeES(esA);
+    if (!liveA) return;
+    esA = new EventSource('/~/api/get_log?file=log');
+    esA.onmessage = e => {
+      if (e.data?.trim() && liveA) { accLog.push(e.data); while(accLog.length>CONF.MAX_LOGS*2) accLog.shift(); renderAccess(); }
+    };
+    esA.onerror = () => { esA=closeES(esA); if(liveA) setTimeout(startAccess,3000); };
+  }
 
-    function decodeUriSmart(uri) { if (!uri) return uri; try { return decodeURIComponent(uri); } catch(e) { return uri; } }
+  function startConsole() {
+    esC = closeES(esC);
+    if (!liveC) return;
+    esC = new EventSource('/~/api/get_log?file=console');
+    esC.onmessage = e => {
+      if (e.data?.trim() && liveC) { conLog.push(e.data); while(conLog.length>CONF.MAX_LOGS*2) conLog.shift(); renderConsole(); }
+    };
+    esC.onerror = () => { esC=closeES(esC); if(liveC) setTimeout(startConsole,3000); };
+  }
 
-    function loadPref(key,def){ try{ const v=localStorage.getItem(key); return v!==null?v:def; }catch(e){ return def; } }
-    function savePref(key,val){ try{ localStorage.setItem(key,String(val)); }catch(e){} }
-
-    let maskEnabled = loadPref(CONFIG.STORAGE_KEYS.MASK,'true')==='true';
-    let cjkEnabled = loadPref(CONFIG.STORAGE_KEYS.CJK,'true')==='true';
-    let cjkReplacement = '█';
-
-    let accessLogLive = loadPref(CONFIG.STORAGE_KEYS.ACCESS_LIVE,'true')==='true';
-    let consoleLogLive = loadPref(CONFIG.STORAGE_KEYS.CONSOLE_LIVE,'true')==='true';
-    let connectionsLive = loadPref(CONFIG.STORAGE_KEYS.CONNECTIONS_LIVE,'false')==='true';
-    let disksLive = loadPref(CONFIG.STORAGE_KEYS.DISKS_LIVE,'true')==='true';
-    let networkLive = loadPref(CONFIG.STORAGE_KEYS.NETWORK_LIVE,'false')==='true';
-
-    let accessEventSource = null, consoleEventSource = null, connectionsEventSource = null, trafficEventSource = null;
-    function closeEventSource(src) { if(src) { src.close(); src=null; } return null; }
-
-    function fetchOnceAccessLog() { 
-      fetch('/~/api/get_log?file=log', { credentials: 'include' }).then(res=>res.text()).then(txt=>{ 
-        const lines = txt.split('\n').filter(l=>l.trim());
-        if(lines.length) {
-          lines.forEach(line=>{ accessLogEntries.push(line); while(accessLogEntries.length>CONFIG.MAX_LOGS*2) accessLogEntries.shift(); });
-          if(accessLogLive) renderAccessLog();
-        }
-      }).catch(e=>console.warn); 
-    }
-    function fetchOnceConsoleLog() { 
-      fetch('/~/api/get_log?file=console', { credentials: 'include' }).then(res=>res.text()).then(txt=>{ 
-        const lines = txt.split('\n').filter(l=>l.trim());
-        if(lines.length) {
-          lines.forEach(line=>{ consoleLogEntries.push(line); while(consoleLogEntries.length>CONFIG.MAX_LOGS*2) consoleLogEntries.shift(); });
-          if(consoleLogLive) renderConsoleLog();
-        }
-      }).catch(e=>console.warn); 
-    }
-
-    function restartAccessStream() { if(accessEventSource) accessEventSource = closeEventSource(accessEventSource); if(accessLogLive) { accessEventSource = new EventSource('/~/api/get_log?file=log'); accessEventSource.onmessage = (e) => { if(e.data?.trim()){ accessLogEntries.push(e.data); while(accessLogEntries.length>CONFIG.MAX_LOGS*2) accessLogEntries.shift(); if(accessLogLive) renderAccessLog(); } }; accessEventSource.onerror = () => {}; } }
-    function restartConsoleStream() { if(consoleEventSource) consoleEventSource = closeEventSource(consoleEventSource); if(consoleLogLive) { consoleEventSource = new EventSource('/~/api/get_log?file=console'); consoleEventSource.onmessage = (e) => { if(e.data?.trim()){ consoleLogEntries.push(e.data); while(consoleLogEntries.length>CONFIG.MAX_LOGS*2) consoleLogEntries.shift(); if(consoleLogLive) renderConsoleLog(); } }; consoleEventSource.onerror = () => {}; } }
-    function restartConnectionsStream() { if(connectionsEventSource) connectionsEventSource = closeEventSource(connectionsEventSource); if(connectionsLive) { connectionsEventSource = new EventSource('/~/api/get_connections?'); connectionsEventSource.onmessage = (e) => { if(!connectionsLive) return; try{ const data=JSON.parse(e.data); if(!Array.isArray(data)) return; data.forEach(row=>{ const type=row[0],payload=row[1]; if(type==='ready'||type==='props'||!payload?.ip) return; const key=payload.ip+':'+(payload.port||'0'); if(type==='+') connectionMap.set(key,payload); else if(type==='=') Object.assign(connectionMap.get(key)||{},payload); else if(type==='-') connectionMap.delete(key); }); renderConnections(); }catch(err){} }; connectionsEventSource.onerror = () => {}; } }
-    function restartTrafficStream() { if(trafficEventSource) trafficEventSource = closeEventSource(trafficEventSource); if(networkLive) { trafficEventSource = new EventSource('/~/api/get_connection_stats?'); trafficEventSource.onmessage = e => { try{ const d=JSON.parse(e.data); if(d) updateTrafficFromEvent(d); } catch(err){} }; trafficEventSource.onerror = () => {}; } }
-
-    function setLiveStateAndReconfig(key, newValue, type) { savePref(key, newValue); switch(type) { case 'access': accessLogLive = newValue; restartAccessStream(); if(!accessLogLive) renderAccessLog(); else renderAccessLog(); break; case 'console': consoleLogLive = newValue; restartConsoleStream(); if(!consoleLogLive) renderConsoleLog(); else renderConsoleLog(); break; case 'connections': connectionsLive = newValue; restartConnectionsStream(); if(!connectionsLive) connectionMap.clear(); renderConnections(); break; case 'disks': disksLive = newValue; manageLiveIntervals(); if(!disksLive) refreshDisks(); else refreshDisks(); break; case 'network': networkLive = newValue; manageLiveIntervals(); restartTrafficStream(); if(!networkLive) refreshNetwork(true); else refreshNetwork(true); break; } }
-
-    function onMaskChange(e) { maskEnabled=e.target.checked; savePref(CONFIG.STORAGE_KEYS.MASK,maskEnabled); renderAccessLog(); renderConsoleLog(); }
-    function onCJKChange(e) { cjkEnabled=e.target.checked; savePref(CONFIG.STORAGE_KEYS.CJK,cjkEnabled); renderAccessLog(); renderConsoleLog(); }
-
-    const scrollState = new Map();
-    function setupScrollable(el){ if(!el) return; const s={autoScroll:true}; scrollState.set(el,s); el.addEventListener('scroll',()=>{ s.autoScroll=(el.scrollHeight-el.scrollTop-el.clientHeight)<20; }); }
-    function scrollToBottom(el){ const s=scrollState.get(el); if(s?.autoScroll && el) el.scrollTop=el.scrollHeight; }
-
-    let isNarrow=false, currentStarted=null;
-    function detectNarrow(){ return window.matchMedia('(max-aspect-ratio: 4/3)').matches; }
-    function buildLiveToggle(id, checked) { return `<span class="log-pause-toggle"><span class="mask-label-text">Live</span><label class="switch"><input type="checkbox" id="${id}" ${checked?'checked':''}><span class="slider"></span></label></span>`; }
-    function formatIp(ip){ if(!ip) return ''; if(ip==='127.0.0.1'||ip==='::1') return 'LO'; const parts=ip.split('.'); if(parts.length===4){ if(parts[0]==='192'&&parts[1]==='168'&&parts[2]==='1') return parts[3]; return parts[2]+'.'+parts[3]; } const shortIp = ip.replace(/^([0-9a-f:]+):.*$/i, '$1'); if(shortIp.length>12) return shortIp.substring(0,8)+'...'; return shortIp; }
-    function formatUptime(startedISO) { if(!startedISO) return '-'; const start=new Date(startedISO), now=new Date(), diff=Math.floor((now-start)/1000); const days=Math.floor(diff/86400), hours=Math.floor((diff%86400)/3600), mins=Math.floor((diff%3600)/60); if(days>0) return `${days}d ${hours}h ${mins}m`; if(hours>0) return `${hours}h ${mins}m`; return `${mins}m`; }
-
-    let statusCountdown = CONFIG.REFRESH_STATUS / 1000;
-    let diskCountdown = CONFIG.REFRESH_DISKS / 1000;
-    setInterval(() => {
-      statusCountdown = Math.max(0, statusCountdown - 1);
-      diskCountdown = Math.max(0, diskCountdown - 1);
-      const statusEl = document.getElementById('statusCountdown');
-      const diskEl = document.getElementById('diskCountdown');
-      if(statusEl) statusEl.textContent = `${statusCountdown}s`;
-      if(diskEl) diskEl.textContent = `${diskCountdown}s`;
-    }, 1000);
-
-    async function refreshStatus(){
-      try{ 
-        const d=await api('/~/api/get_status'); 
-        const c=document.getElementById('statusCards'); 
-        if(!c) return; 
-        const http=d.http||{}, https=d.https||{}, started=d.started||'', uptime=formatUptime(started); 
-        if(started && currentStarted!==started){ currentStarted=started; refreshNetwork(true); } 
-        
-        let serverTitle = 'LaqureLab';
-        let pluginsCount = 0;
-        let forceLang = 'en';
-        let forceHttps = false;
-        let deleteUnfinished = 86400;
-        let dontOverwrite = true;
-        
-        try {
-          const config = await api('/~/api/get_config');
-          if (config) {
-            serverTitle = config.title || serverTitle;
-            pluginsCount = Array.isArray(config.enable_plugins) ? config.enable_plugins.length : 0;
-            forceLang = config.force_lang || 'en';
-            forceHttps = config.force_https === true;
-            deleteUnfinished = config.delete_unfinished_uploads_after || 86400;
-            dontOverwrite = config.dont_overwrite_uploading === true;
-          }
-        } catch(e) { console.warn('config fetch failed', e); }
-
-        const cards=[
-          {label:'Server: ',value:serverTitle},
-          {label:'Version: ',value:d.version||'-'},
-          {label:'Uptime: ',value:uptime,cls:'uptime'},
-          {label:'Platform: ',value:d.platform||'-'},
-          {label:'HTTP: ',value:http.listening?'Port '+http.port:'Off',cls:http.listening?'online':'offline'},
-          {label:'HTTPS: ',value:https.listening?'Port '+https.port:'Off',cls:https.listening?'online':'offline'},
-          {label:'RAM: ',value:d.ram?(d.ram/1024/1024).toFixed(1)+' MB':'-'},
-          {label:'Config: ',value:d.configFile||'-'},
-          {label:'Update: ',value:d.updatePossible?'Yes':'No',cls:d.updatePossible?'online':''},
-          {label:'Plugins: ',value:pluginsCount},
-          {label:'Language: ',value:forceLang},
-          {label:'Force HTTPS: ',value:forceHttps?'Yes':'No'},
-          {label:'Unfinished Upload: ',value:deleteUnfinished+'s'},
-          {label:'Overwrite Protect: ',value:dontOverwrite?'On':'Off'}
-        ]; 
-        c.innerHTML=cards.map(c=>`<div class="stat-card"><span class="stat-label">${escapeHtml(c.label)}</span><span class="stat-value${c.cls?' '+c.cls:''}">${escapeHtml(c.value)}</span></div>`).join(''); 
-        statusCountdown = CONFIG.REFRESH_STATUS / 1000;
-      }catch(e){ 
-        const c=document.getElementById('statusCards'); 
-        if(c) c.innerHTML='<div class="stat-card"><span class="stat-value offline">Error</span></div>'; 
-      } 
-    }
-
-    function formatBytes(b){ if(b==null) return '-'; if(b>=1099511627776) return (b/1099511627776).toFixed(1)+' TB'; if(b>=1073741824) return (b/1073741824).toFixed(1)+' GB'; if(b>=1048576) return (b/1048576).toFixed(1)+' MB'; return (b/1024).toFixed(1)+' KB'; }
-    
-    async function refreshDisks() {
+  function startConns() {
+    esConn = closeES(esConn);
+    if (!liveConn) { connMap.clear(); renderConns(); return; }
+    esConn = new EventSource('/~/api/get_connections?');
+    esConn.onmessage = e => {
+      if (!liveConn) return;
       try {
-        const disks = await api('/~/api/get_disk_spaces');
-        const container = document.getElementById('diskContainer');
-        if (!container) return;
-        if (!Array.isArray(disks) || !disks.length) {
-          container.innerHTML = '<div style="color:var(--orange-faint-contrast);">No disk data</div>';
-          return;
-        }
-        container.innerHTML = disks.map(d => {
-          const total = d.total || 0;
-          const free = d.free || 0;
-          const used = total - free;
-          const pct = total > 0 ? (used / total * 100) : 0;
-          const freePercent = total > 0 ? (free / total * 100) : 100;
-          const freeFormatted = formatBytes(free);
-          return `<div class="disk-card">
-            <div class="disk-row">
-              <span class="disk-name">${escapeHtml(d.name || '?')}</span>
-              <div class="disk-bar-bg">
-                <div class="disk-bar-fill" style="width:${pct.toFixed(0)}%;"></div>
-              </div>
-              <span class="disk-info">${freeFormatted} (${freePercent.toFixed(0)}%)</span>
-            </div>
-          </div>`;
-        }).join('');
-        diskCountdown = CONFIG.REFRESH_DISKS / 1000;
-      } catch(e) {}
-    }
+        const d=JSON.parse(e.data); if(!Array.isArray(d)) return;
+        d.forEach(r=>{ const t=r[0],p=r[1]; if(t==='ready'||t==='props'||!p?.ip) return; const k=p.ip+':'+(p.port||'0'); if(t==='+') connMap.set(k,p); else if(t==='=') Object.assign(connMap.get(k)||{},p); else if(t==='-') connMap.delete(k); });
+        renderConns();
+      } catch(err) {}
+    };
+    esConn.onerror = () => { esConn=closeES(esConn); if(liveConn) setTimeout(startConns,3000); };
+  }
 
-    async function refreshNetwork(force=false){ 
-      const natEl = document.getElementById('natInfo'); 
-      if (!natEl) return;
-      
-      try { 
-        const nat = await api('/~/api/get_nat'); 
-        if (nat && Object.keys(nat).length) { 
-          natEl.innerHTML = Object.entries(nat).map(([k, v]) => {
-            const val = typeof v === 'object' ? JSON.stringify(v) : String(v);
-            return `<div class="label-card"><span class="stat-label">${escapeHtml(k)}: </span><span class="stat-value">${escapeHtml(val)}</span></div>`;
-          }).join(''); 
-        } else {
-          natEl.innerHTML = '<div class="label-card"><span class="stat-value">No NAT info</span></div>';
-        }
-      } catch(e) { 
-        natEl.innerHTML = '<div class="label-card"><span class="stat-value">NAT: unavailable</span></div>';
-      } 
-      
-      try {
-        const config = await api('/~/api/get_config');
-        if (config) {
-          const listenInterface = config.listen_interface || 'All interfaces';
-          const maxKbps = config.max_kbps !== null ? config.max_kbps + ' KB/s' : 'Unlimited';
-          const maxKbpsPerIp = config.max_kbps_per_ip !== null ? config.max_kbps_per_ip + ' KB/s' : 'Unlimited';
-          const limitsEl = document.getElementById('networkLimits');
-          if (limitsEl) {
-            limitsEl.innerHTML = '';
-            [
-              {label: 'IF', value: listenInterface},
-              {label: 'Limit', value: maxKbps},
-              {label: 'IP Limit', value: maxKbpsPerIp}
-            ].forEach(item => {
-              limitsEl.innerHTML += `<div class="label-card"><span class="stat-label">${item.label}: </span><span class="stat-value">${escapeHtml(item.value)}</span></div>`;
-            });
-          }
-        }
-      } catch(e) {}
-    }
+  function startNet() {
+    esNet = closeES(esNet);
+    if (!liveN) return;
+    esNet = new EventSource('/~/api/get_connection_stats?');
+    esNet.onmessage = e => { try { const d=JSON.parse(e.data); if(d&&liveN) updateTraffic(d); } catch(err) {} };
+    esNet.onerror = () => { esNet=closeES(esNet); if(liveN) setTimeout(startNet,3000); };
+  }
 
-    function updateTrafficFromEvent(data){ 
-      const el = document.getElementById('trafficStats'); 
-      if (!el) return; 
-      const out = data.outSpeedKb !== undefined ? Number(data.outSpeedKb).toFixed(1) : '0';
-      const inn = data.inSpeedKb !== undefined ? Number(data.inSpeedKb).toFixed(1) : '0';
-      const conns = data.connections || 0;
-      const ips = data.ips || 0;
-      el.innerHTML = '';
-      [
-        {label: 'Out', value: out + ' KB/s'},
-        {label: 'In', value: inn + ' KB/s'},
-        {label: 'Conns', value: conns + ' (' + ips + ' IPs)'}
-      ].forEach(item => {
-        el.innerHTML += `<div class="label-card"><span class="stat-label">${item.label}: </span><span class="stat-value">${item.value}</span></div>`;
+  // ==================== TOGGLE ====================
+  function toggle(key, val, type) {
+    spref(key, String(val));
+    switch(type) {
+      case 's': liveS=val; if(val) clrCfg(); manageIntS(); refreshS(); break;
+      case 'a': liveA=val; if(val) startAccess(); else { esA=closeES(esA); renderAccess(); } break;
+      case 'c': liveC=val; if(val) startConsole(); else { esC=closeES(esC); renderConsole(); } break;
+      case 'conn': liveConn=val; startConns(); break;
+      case 'd': liveD=val; manageIntDN(); refreshD(); break;
+      case 'n': liveN=val; manageIntDN(); if(val) startNet(); else { esNet=closeES(esNet); preloadTraffic(); } break;
+    }
+  }
+
+  const omask = e => { maskOn=e.target.checked; spref(CONF.KEYS.MASK,maskOn); renderAccess(); renderConsole(); };
+  const ocjk = e => { cjkOn=e.target.checked; spref(CONF.KEYS.CJK,cjkOn); renderAccess(); renderConsole(); };
+
+  // ==================== SCROLL ====================
+  const ss = new Map();
+  const ssetup = el => { if(!el) return; const o={auto:true}; ss.set(el,o); el.addEventListener('scroll',()=>{ o.auto=(el.scrollHeight-el.scrollTop-el.clientHeight)<20; }); };
+  const sbot = el => { const o=ss.get(el); if(o?.auto&&el) el.scrollTop=el.scrollHeight; };
+
+  // ==================== FORMAT ====================
+  let narrow = false, curStart = null;
+  const isNarrow = () => matchMedia('(max-aspect-ratio: 4/3)').matches;
+  const lvtog = (id, chk) => `<span class="log-pause-toggle"><span class="mask-label-text">Live</span><label class="switch"><input type="checkbox" id="${id}" ${chk?'checked':''}><span class="slider"></span></label></span>`;
+  const fip = ip => { if(!ip) return ''; if(ip==='127.0.0.1'||ip==='::1') return 'LO'; const p=ip.split('.'); if(p.length===4){ if(p[0]==='192'&&p[1]==='168'&&p[2]==='1') return p[3]; return p[2]+'.'+p[3]; } const s=ip.replace(/^([0-9a-f:]+):.*$/i,'$1'); return s.length>12?s.substring(0,8)+'...':s; };
+  const fup = s => { if(!s) return '-'; const st=new Date(s), nw=new Date(), df=Math.floor((nw-st)/1000); const d=Math.floor(df/86400), h=Math.floor((df%86400)/3600), m=Math.floor((df%3600)/60); if(d>0) return `${d}d ${h}h ${m}m`; if(h>0) return `${h}h ${m}m`; return `${m}m`; };
+  const fbytes = b => { if(b==null) return '-'; if(b>=1099511627776) return (b/1099511627776).toFixed(1)+' TB'; if(b>=1073741824) return (b/1073741824).toFixed(1)+' GB'; if(b>=1048576) return (b/1048576).toFixed(1)+' MB'; return (b/1024).toFixed(1)+' KB'; };
+
+  // ==================== COUNTDOWN ====================
+  let cdS = CONF.REFRESH_STATUS/1000, cdD = CONF.REFRESH_DISKS/1000;
+  setInterval(() => {
+    cdS=Math.max(0,cdS-1); cdD=Math.max(0,cdD-1);
+    const es=document.getElementById('cdStatus'), ed=document.getElementById('cdDisk');
+    if(es) es.textContent=`${cdS}s`; if(ed) ed.textContent=`${cdD}s`;
+  }, 1000);
+
+  // ==================== REFRESH ====================
+  async function refreshS() {
+    try {
+      const d=await api('/~/api/get_status');
+      const c=document.getElementById('scards'); if(!c) return;
+      const http=d.http||{}, https=d.https||{}, started=d.started||'';
+      if(started&&curStart!==started){ curStart=started; refreshN(true); }
+
+      let title='LaqureLab', np=0, lang='en', fhttps=false, du=86400, dow=true;
+      const cfg=await getCfg();
+      if(cfg){ title=cfg.title||title; np=Array.isArray(cfg.enable_plugins)?cfg.enable_plugins.length:0; lang=cfg.force_lang||'en'; fhttps=cfg.force_https===true; du=cfg.delete_unfinished_uploads_after||86400; dow=cfg.dont_overwrite_uploading===true; }
+
+      const cards=[
+        {l:'Server: ',v:title},{l:'Version: ',v:d.version||'-'},{l:'Uptime: ',v:fup(started),k:'uptime'},
+        {l:'Platform: ',v:d.platform||'-'},{l:'HTTP: ',v:http.listening?'Port '+http.port:'Off',k:http.listening?'online':'offline'},
+        {l:'HTTPS: ',v:https.listening?'Port '+https.port:'Off',k:https.listening?'online':'offline'},
+        {l:'RAM: ',v:d.ram?(d.ram/1024/1024).toFixed(1)+' MB':'-'},{l:'Config: ',v:d.configFile||'-'},
+        {l:'Update: ',v:d.updatePossible?'Yes':'No',k:d.updatePossible?'online':''},
+        {l:'Plugins: ',v:np},{l:'Language: ',v:lang},{l:'Force HTTPS: ',v:fhttps?'Yes':'No'},
+        {l:'Unfinished Upload: ',v:du+'s'},{l:'Overwrite Protect: ',v:dow?'On':'Off'}
+      ];
+      c.innerHTML=cards.map(x=>`<div class="stat-card"><span class="stat-label">${esc(x.l)}</span><span class="stat-value${x.k?' '+x.k:''}">${esc(x.v)}</span></div>`).join('');
+      cdS=CONF.REFRESH_STATUS/1000;
+    } catch(e) { const c=document.getElementById('scards'); if(c) c.innerHTML='<div class="stat-card"><span class="stat-value offline">Error</span></div>'; }
+  }
+
+  async function refreshD() {
+    try {
+      const disks=await api('/~/api/get_disk_spaces');
+      const c=document.getElementById('diskC'); if(!c) return;
+      if(!Array.isArray(disks)||!disks.length){ c.innerHTML='<div style="color:var(--orange-faint-contrast);">No disk data</div>'; return; }
+      c.innerHTML=disks.map(d=>{
+        const t=d.total||0, f=d.free||0, u=t-f, p=t>0?(u/t*100):0, fp=t>0?(f/t*100):100, ff=fbytes(f);
+        return `<div class="disk-card"><div class="disk-row"><span class="disk-name">${esc(d.name||'?')}</span><div class="disk-bar-bg"><div class="disk-bar-fill" style="width:${p.toFixed(0)}%;"></div></div><span class="disk-info">${ff} (${fp.toFixed(0)}%)</span></div></div>`;
+      }).join('');
+      cdD=CONF.REFRESH_DISKS/1000;
+    } catch(e) {}
+  }
+
+  async function refreshN(_) {
+    const ne=document.getElementById('natInfo'); if(!ne) return;
+    try {
+      const nat=await api('/~/api/get_nat');
+      if(nat&&Object.keys(nat).length){ ne.innerHTML=Object.entries(nat).map(([k,v])=>`<div class="label-card"><span class="stat-label">${esc(k)}: </span><span class="stat-value">${esc(typeof v==='object'?JSON.stringify(v):String(v))}</span></div>`).join(''); }
+      else ne.innerHTML='<div class="label-card"><span class="stat-value">No NAT info</span></div>';
+    } catch(e) { ne.innerHTML='<div class="label-card"><span class="stat-value">NAT: unavailable</span></div>'; }
+    try {
+      const cfg=await getCfg();
+      if(cfg){
+        const lif=cfg.listen_interface||'All interfaces', mk=cfg.max_kbps!==null?cfg.max_kbps+' KB/s':'Unlimited', mkip=cfg.max_kbps_per_ip!==null?cfg.max_kbps_per_ip+' KB/s':'Unlimited';
+        const le=document.getElementById('netLimits');
+        if(le) le.innerHTML=[{l:'IF',v:lif},{l:'Limit',v:mk},{l:'IP Limit',v:mkip}].map(x=>`<div class="label-card"><span class="stat-label">${x.l}: </span><span class="stat-value">${esc(x.v)}</span></div>`).join('');
+      }
+    } catch(e) {}
+  }
+
+  function updateTraffic(data) {
+    const el=document.getElementById('trafStats'); if(!el) return;
+    const out=data.outSpeedKb!==undefined?Number(data.outSpeedKb).toFixed(1):'0', inn=data.inSpeedKb!==undefined?Number(data.inSpeedKb).toFixed(1):'0';
+    const conns=data.connections||0, ips=data.ips||0;
+    let h=[{l:'Out',v:out+' KB/s'},{l:'In',v:inn+' KB/s'},{l:'Conns',v:conns+' ('+ips+' IPs)'}].map(x=>`<div class="label-card"><span class="stat-label">${x.l}: </span><span class="stat-value">${x.v}</span></div>`).join('');
+    if(data.sent_got&&Array.isArray(data.sent_got)&&data.sent_got.length>=3){
+      const sf=fbytes(data.sent_got[0]), gf=fbytes(data.sent_got[1]); let ss='';
+      try{ ss=new Date(data.sent_got[2]).toLocaleString(); }catch(e){ ss=data.sent_got[2]||''; }
+      h+=`<div class="label-card"><span class="stat-label">Since: </span><span class="stat-value">${esc(ss)}</span></div>`;
+      h+=`<div class="label-card"><span class="stat-label">Sent: </span><span class="stat-value">${esc(sf)}</span></div>`;
+      h+=`<div class="label-card"><span class="stat-label">Got: </span><span class="stat-value">${esc(gf)}</span></div>`;
+    }
+    el.innerHTML=h;
+  }
+
+  // ==================== CONNECTIONS ====================
+  const connMap = new Map();
+  function renderConns() {
+    const tb=document.getElementById('connsBody'); if(!tb) return;
+    const es=[...connMap.values()]; const nw=narrow;
+    if(!es.length){ tb.innerHTML=nw?'<tr><td colspan="4" class="empty-msg">No connections</td></tr>':'<tr><td colspan="5" class="empty-msg">No active connections</td></tr>'; return; }
+    tb.innerHTML=es.slice(-CONF.MAX_CONNECTIONS).map(x=>{
+      const ip=esc(fip(x.ip||'')), usr=esc(x.user||''); let path=(x.path||'').substring(0,45);
+      if(maskOn||cjkOn) path=mpath(path,maskOn,cjkOn,cjkR); path=esc(path);
+      const prog=x.opProgress!==undefined?(x.opProgress*100).toFixed(0)+'%':(x.op||'-'), spd=x.outSpeedKb!==undefined?Number(x.outSpeedKb).toFixed(1):'0.0';
+      return nw?`<tr><td>${ip}</td><td>${path}</td><td>${prog}</td><td>${spd}</td></tr>`:`<tr><td>${ip}</td><td>${usr}</td><td>${path}</td><td>${prog}</td><td>${spd}</td></tr>`;
+    }).join('');
+  }
+
+  // ==================== LOG RENDER ====================
+  const accLog=[], conLog=[];
+
+  function fmtAccess(raw) {
+    try {
+      const a=JSON.parse(raw); if(!Array.isArray(a)) return [esc(mpath(raw,maskOn,cjkOn,cjkR))];
+      return a.map(x=>{
+        if(Array.isArray(x)&&x[0]==='ready') return '<span style="color:var(--orange-text);">[Ready]</span>';
+        const d=Array.isArray(x)?x[1]:null;
+        if(d&&typeof d==='object'){
+          const ts=d.ts?new Date(d.ts).toLocaleTimeString():'', ip=d.ip?fip(d.ip):'?', m=d.method||'';
+          let u=duri(d.uri||''); u=mpath(u,maskOn,cjkOn,cjkR); const s=d.status||'';
+          const usr=d.user?`<span class="user-tag">${esc(d.user)}</span>`:'', sc=s>=400?'status-err':'status-ok';
+          return `<span class="time">${ts}</span> <span class="ip-addr">${esc(ip)}</span> <span class="method">${esc(m)}</span> <span class="uri">${esc(u)}</span> <span class="${sc}">${s}</span> ${usr}`;
+        }
+        return esc(mpath(JSON.stringify(x),maskOn,cjkOn,cjkR));
       });
-    }
+    } catch(e) { return [esc(mpath(raw,maskOn,cjkOn,cjkR))]; }
+  }
 
-    const connectionMap = new Map();
-    function renderConnections(){ const tbody=document.getElementById('connectionsBody'); if(!tbody) return; const entries=[...connectionMap.values()]; const narrow=isNarrow; if(!entries.length){ tbody.innerHTML=narrow?'<tr><td colspan="4" class="empty-msg">No connections</td></tr>':'<tr><td colspan="5" class="empty-msg">No active connections</td></tr>'; return; } 
-      tbody.innerHTML=entries.slice(-CONFIG.MAX_CONNECTIONS).map(item=>{ const ip=escapeHtml(formatIp(item.ip||'')); const user=escapeHtml(item.user||''); let path=(item.path||'').substring(0,45); if(maskEnabled||cjkEnabled) path=maskPathInText(path,maskEnabled,cjkEnabled,cjkReplacement); path=escapeHtml(path); const progress=item.opProgress!==undefined?(item.opProgress*100).toFixed(0)+'%':(item.op||'-'); const speed=item.outSpeedKb!==undefined?Number(item.outSpeedKb).toFixed(1):'0.0'; if(narrow) return `<tr><td>${ip}</td><td>${path}</td><td>${progress}</td><td>${speed}</td></tr>`; return `<tr><td>${ip}</td><td>${user}</td><td>${path}</td><td>${progress}</td><td>${speed}</td></tr>`; }).join(''); 
-    }
+  function renderAccess() {
+    const c=document.getElementById('accLogC'); if(!c) return;
+    if(!accLog.length){ c.innerHTML='<div class="empty-msg">Waiting...</div>'; return; }
+    const ls=[]; accLog.slice(-CONF.MAX_LOGS).forEach(e=>{ const f=fmtAccess(e); if(Array.isArray(f)) ls.push(...f); else ls.push(f); });
+    c.innerHTML=ls.map(l=>`<div class="access-log-line">${l}</div>`).join('');
+    const sc=document.getElementById('accLogS'); if(sc) sbot(sc);
+  }
 
-    const accessLogEntries = [], consoleLogEntries = [];
-    function formatAccessLogEntry(raw){
-      try{
-        const arr = JSON.parse(raw);
-        if (!Array.isArray(arr)) {
-          return [escapeHtml(maskPathInText(raw, maskEnabled, cjkEnabled, cjkReplacement))];
-        }
-        return arr.map(item => {
-          if (Array.isArray(item) && item[0] === 'ready') {
-            return '<span style="color:var(--orange-text);">[Ready]</span>';
-          }
-          const d = Array.isArray(item) ? item[1] : null;
-          if (d && typeof d === 'object') {
-            const ts = d.ts ? new Date(d.ts).toLocaleTimeString() : '';
-            let ip = d.ip ? formatIp(d.ip) : '?';
-            const method = d.method || '';
-            let uri = decodeUriSmart(d.uri || '');
-            uri = maskPathInText(uri, maskEnabled, cjkEnabled, cjkReplacement);
-            const status = d.status || '';
-            const user = d.user ? `<span class="user-tag">${escapeHtml(d.user)}</span>` : '';
-            const statusClass = (status >= 400) ? 'status-err' : 'status-ok';
-            return `<span class="time">${ts}</span> <span class="ip-addr">${escapeHtml(ip)}</span> <span class="method">${escapeHtml(method)}</span> <span class="uri">${escapeHtml(uri)}</span> <span class="${statusClass}">${status}</span> ${user}`;
-          }
-          return escapeHtml(maskPathInText(JSON.stringify(item), maskEnabled, cjkEnabled, cjkReplacement));
+  function renderConsole() {
+    const c=document.getElementById('conLogC'); if(!c) return;
+    if(!conLog.length){ c.innerHTML='<div class="empty-msg">Waiting...</div>'; return; }
+    const ls=[]; conLog.slice(-CONF.MAX_LOGS).forEach(raw=>{
+      try {
+        const a=JSON.parse(raw); if(!Array.isArray(a)){ ls.push(esc(mpath(raw,maskOn,cjkOn,cjkR))); return; }
+        a.forEach(x=>{
+          if(Array.isArray(x)&&x[1]?.ts){
+            const d=x[1], ts=new Date(d.ts).toLocaleTimeString(); let msg=d.msg||''; msg=mpath(msg,maskOn,cjkOn,cjkR);
+            let ip=''; if(d.ip) ip=`<span class="console-ip">${esc(fip(d.ip))}</span> `;
+            const cls=d.k==='error'?'error':(d.k==='warning'?'warning':'');
+            ls.push(`<div class="console-entry ${cls}"><span class="ts">${ts}</span> ${ip}<span class="msg">${esc(msg)}</span></div>`);
+          } else ls.push(esc(mpath(JSON.stringify(x),maskOn,cjkOn,cjkR)));
         });
-      } catch(e) {
-        return [escapeHtml(maskPathInText(raw, maskEnabled, cjkEnabled, cjkReplacement))];
-      }
+      } catch(e) { ls.push(esc(mpath(raw,maskOn,cjkOn,cjkR))); }
+    });
+    c.innerHTML=ls.join('');
+    const sc=document.getElementById('conLogS'); if(sc) sbot(sc);
+  }
+
+  // ==================== INTERVALS ====================
+  function manageIntDN() {
+    clearInterval(intD); clearInterval(intN);
+    if(liveD) intD=setInterval(refreshD,CONF.REFRESH_DISKS);
+    if(liveN) intN=setInterval(()=>refreshN(false),CONF.REFRESH_NETWORK);
+  }
+  function manageIntS() { clearInterval(intS); if(liveS) intS=setInterval(refreshS,CONF.REFRESH_STATUS); }
+
+  // ==================== LAYOUT ====================
+  function build() {
+    const nw=isNarrow(); narrow=nw;
+    const c1=document.getElementById('col1Container'), c2=document.getElementById('col2Container'), c3=document.getElementById('col3Container');
+    const maskH=`<div class="mask-toggle-container"><span class="mask-label-text">Mask</span><label class="switch"><input type="checkbox" id="maskTog" ${maskOn?'checked':''}><span class="slider"></span></label><span class="mask-label-text">CJK</span><label class="switch"><input type="checkbox" id="cjkTog" ${cjkOn?'checked':''}><span class="slider"></span></label></div>`;
+    const sgc=nw?'single-col':'double-col', ngc=nw?'single-col':'double-col';
+    const sHead=`<span class="panel-header-left" id="statusHead">HFS Status <span class="countdown-text" id="cdStatus">${cdS}s</span></span>${lvtog('liveS',liveS)}`;
+    const dHead=`<div style="display:flex;justify-content:space-between;align-items:center;padding:2px 4px;"><span style="color:var(--orange-comment-contrast);font-size:8px;text-transform:uppercase;">Disks-free <span class="countdown-text" id="cdDisk">${cdD}s</span></span>${lvtog('liveD',liveD)}</div>`;
+    const conHead=`<div class="header-controls">${maskH}${lvtog('liveC',liveC)}</div>`;
+
+    if(!nw) {
+      c1.style.overflowY='hidden';
+      c1.innerHTML=`<div class="panel"><h2>${sHead}</h2><div class="status-grid ${sgc}" id="scards"></div><div id="diskSec" style="padding:2px;">${dHead}<div id="diskC"></div></div></div><div class="panel"><h2>Network Info ${lvtog('liveN',liveN)}</h2><div class="network-grid ${ngc}" id="netCards"><div><span class="section-subtitle">NAT</span><div id="natInfo">loading...</div></div><div><span class="section-subtitle">Traffic</span><div id="trafStats">-</div><span class="section-subtitle" style="margin-top:4px;">Limits</span><div id="netLimits">-</div></div></div></div><div class="panel"><h2>Live Connections ${lvtog('liveConn',liveConn)}</h2><div class="panel-body-fill" id="connScroll"><table><thead><tr><th>IP</th><th>User</th><th>Path</th><th>Prog</th><th>KB/s</th></tr></thead><tbody id="connsBody"><tr><td colspan="5" class="empty-msg">No active connections</td></tr></tbody></table></div></div>`;
+      c2.innerHTML=`<div class="panel"><h2>Console Log ${conHead}</h2><div class="panel-body-fill log-container" id="conLogS"><div id="conLogC" class="empty-msg">Waiting...</div></div></div>`;
+      c3.innerHTML=`<div class="panel"><h2>Access Log ${lvtog('liveA',liveA)}</h2><div class="panel-body-fill" id="accLogS"><div id="accLogC">Waiting...</div></div></div>`;
+      c3.style.display='';
+    } else {
+      c1.style.overflowY='auto';
+      c1.innerHTML=`<div style="display:flex;flex-direction:column;gap:0;min-height:100%;"><div class="panel" style="flex:0 0 auto;"><h2>${sHead}</h2><div class="status-grid ${sgc}" id="scards"></div><div id="diskSec" style="padding:2px;">${dHead}<div id="diskC"></div></div></div><div class="panel" style="flex:0 0 auto;"><h2>Network Info ${lvtog('liveN',liveN)}</h2><div class="network-grid ${ngc}" id="netCards"><div><span class="section-subtitle">NAT</span><div id="natInfo">loading...</div></div><div><span class="section-subtitle">Traffic</span><div id="trafStats">-</div><span class="section-subtitle" style="margin-top:4px;">Limits</span><div id="netLimits">-</div></div></div></div><div class="panel" style="flex:0 0 auto;min-height:100px;"><h2>Live Connections ${lvtog('liveConn',liveConn)}</h2><div class="panel-body-fill" id="connScroll" style="max-height:300px;"><table><thead><tr><th>IP</th><th>Path</th><th>Prog</th><th>KB/s</th></tr></thead><tbody id="connsBody"><tr><td colspan="4" class="empty-msg">No connections</td></tr></tbody></table></div></div></div>`;
+      c2.innerHTML=`<div style="display:flex;flex-direction:column;height:100%;gap:0;"><div class="panel" style="flex:1 1 auto;min-height:40%;"><h2>Console Log ${conHead}</h2><div class="panel-body-fill log-container" id="conLogS"><div id="conLogC" class="empty-msg">Waiting...</div></div></div><div class="panel" style="flex:1 1 auto;min-height:50%;"><h2>Access Log ${lvtog('liveA',liveA)}</h2><div class="panel-body-fill" id="accLogS"><div id="accLogC">Waiting...</div></div></div></div>`;
+      c3.style.display='none';
     }
 
-    function renderAccessLog() {
-      const container = document.getElementById('accessLogContainer');
-      if (!container) return;
-      if (!accessLogEntries.length) {
-        container.innerHTML = '<div class="empty-msg">Waiting...</div>';
-        return;
-      }
-      const lines = [];
-      accessLogEntries.slice(-CONFIG.MAX_LOGS).forEach(entry => {
-        const formatted = formatAccessLogEntry(entry);
-        if (Array.isArray(formatted)) lines.push(...formatted);
-        else lines.push(formatted);
-      });
-      container.innerHTML = lines.map(line => `<div class="access-log-line">${line}</div>`).join('');
-      if (document.getElementById('accessLogScroll')) scrollToBottom(document.getElementById('accessLogScroll'));
-    }
+    document.getElementById('statusHead')?.addEventListener('click',e=>{ if(e.target.closest('.switch')) return; if(!document.fullscreenElement) document.documentElement.requestFullscreen?.(); else document.exitFullscreen?.(); });
+    document.getElementById('maskTog')?.addEventListener('change',omask);
+    document.getElementById('cjkTog')?.addEventListener('change',ocjk);
 
-    function renderConsoleLog() {
-      const container = document.getElementById('consoleLogContainer');
-      if (!container) return;
-      if (!consoleLogEntries.length) {
-        container.innerHTML = '<div class="empty-msg">Waiting...</div>';
-        return;
-      }
-      const lines = [];
-      consoleLogEntries.slice(-CONFIG.MAX_LOGS).forEach(raw => {
-        try {
-          const arr = JSON.parse(raw);
-          if (!Array.isArray(arr)) {
-            lines.push(escapeHtml(maskPathInText(raw, maskEnabled, cjkEnabled, cjkReplacement)));
-            return;
-          }
-          arr.forEach(item => {
-            if (Array.isArray(item) && item[1]?.ts) {
-              const d = item[1];
-              const ts = new Date(d.ts).toLocaleTimeString();
-              let msg = d.msg || '';
-              msg = maskPathInText(msg, maskEnabled, cjkEnabled, cjkReplacement);
-              let ipPart = '';
-              if (d.ip) ipPart = `<span class="console-ip">${escapeHtml(formatIp(d.ip))}</span> `;
-              const k = d.k || 'log';
-              const cls = k === 'error' ? 'error' : (k === 'warning' ? 'warning' : '');
-              lines.push(`<div class="console-entry ${cls}"><span class="ts">${ts}</span> ${ipPart}<span class="msg">${escapeHtml(msg)}</span></div>`);
-            } else {
-              lines.push(escapeHtml(maskPathInText(JSON.stringify(item), maskEnabled, cjkEnabled, cjkReplacement)));
-            }
-          });
-        } catch(e) {
-          lines.push(escapeHtml(maskPathInText(raw, maskEnabled, cjkEnabled, cjkReplacement)));
-        }
-      });
-      container.innerHTML = lines.join('');
-      if (document.getElementById('consoleLogScroll')) scrollToBottom(document.getElementById('consoleLogScroll'));
-    }
+    bindTog('liveS',CONF.KEYS.STATUS,'s',liveS);
+    bindTog('liveA',CONF.KEYS.ACCESS,'a',liveA);
+    bindTog('liveC',CONF.KEYS.CONSOLE,'c',liveC);
+    bindTog('liveConn',CONF.KEYS.CONNS,'conn',liveConn);
+    bindTog('liveD',CONF.KEYS.DISKS,'d',liveD);
+    bindTog('liveN',CONF.KEYS.NET,'n',liveN);
 
-    let diskInterval, networkInterval;
-    function manageLiveIntervals(){ 
-      clearInterval(diskInterval); 
-      clearInterval(networkInterval); 
-      if(disksLive) diskInterval=setInterval(refreshDisks,CONFIG.REFRESH_DISKS); 
-      if(networkLive) networkInterval=setInterval(()=>refreshNetwork(false),CONFIG.REFRESH_NETWORK); 
-    }
+    ssetup(document.getElementById('connScroll'));
+    ssetup(document.getElementById('accLogS'));
+    ssetup(document.getElementById('conLogS'));
+    renderConns();
+  }
 
-    function buildLayout() {
-      const narrow = detectNarrow(); isNarrow=narrow;
-      const col1=document.getElementById('col1Container'), col2=document.getElementById('col2Container'), col3=document.getElementById('col3Container');
-      const maskHtml = `<div class="mask-toggle-container"><span class="mask-label-text">Mask</span><label class="switch"><input type="checkbox" id="maskToggle" ${maskEnabled?'checked':''}><span class="slider"></span></label><span class="mask-label-text">CJK</span><label class="switch"><input type="checkbox" id="cjkToggle" ${cjkEnabled?'checked':''}><span class="slider"></span></label></div>`;
-      const statusGridClass=narrow?'single-col':'double-col', networkGridClass=narrow?'single-col':'double-col';
-      const statusHeaderHtml = `<span class="panel-header-left" id="statusHeaderBtn">HFS Status <span class="countdown-text" id="statusCountdown">${statusCountdown}s</span></span>`;
-      const diskHeaderHtml = `<div style="display:flex;justify-content:space-between;align-items:center;padding:2px 4px;"><span style="color:var(--orange-comment-contrast);font-size:8px;text-transform:uppercase;">Disks-free <span class="countdown-text" id="diskCountdown">${diskCountdown}s</span></span>${buildLiveToggle('disksLiveToggle',disksLive)}</div>`;
+  function bindTog(id, key, type, cur) {
+    const el=document.getElementById(id); if(!el) return;
+    el.checked=cur; const n=el.cloneNode(true); el.parentNode.replaceChild(n,el);
+    n.addEventListener('change',e=>toggle(key,e.target.checked,type));
+  }
 
-      if(!narrow) {
-        col1.innerHTML = `<div class="panel"><h2>${statusHeaderHtml}${maskHtml}</h2><div class="status-grid ${statusGridClass}" id="statusCards"></div><div id="diskSection" style="padding:2px;">${diskHeaderHtml}<div id="diskContainer"></div></div></div><div class="panel"><h2>Network Info ${buildLiveToggle('networkLiveToggle',networkLive)}</h2><div class="network-grid ${networkGridClass}" id="networkCards"><div><span class="section-subtitle">NAT</span><div id="natInfo">loading...</div></div><div><span class="section-subtitle">Traffic</span><div id="trafficStats">-</div><span class="section-subtitle" style="margin-top:4px;">Limits</span><div id="networkLimits">-</div></div></div></div><div class="panel"><h2>Live Connections ${buildLiveToggle('connectionsLiveToggle',connectionsLive)}</h2><div class="panel-body-fill" id="connectionsScroll"><table><thead><tr><th>IP</th><th>User</th><th>Path</th><th>Prog</th><th>KB/s</th></tr></thead><tbody id="connectionsBody"><tr><td colspan="5" class="empty-msg">No active connections</td></tr></tbody></table></div></div>`;
-        col2.innerHTML = `<div class="panel"><h2>Console Log ${buildLiveToggle('consoleLiveToggle',consoleLogLive)}</h2><div class="panel-body-fill log-container" id="consoleLogScroll"><div id="consoleLogContainer" class="empty-msg">Waiting...</div></div></div>`;
-        col3.innerHTML = `<div class="panel"><h2>Access Log ${buildLiveToggle('accessLiveToggle',accessLogLive)}</h2><div class="panel-body-fill" id="accessLogScroll"><div id="accessLogContainer">Waiting...</div></div></div>`;
-        col3.style.display = '';
-      } else {
-        col1.innerHTML = `<div style="display:flex; flex-direction:column; height:100%; gap:0;">
-          <div class="panel" style="flex:0 0 auto;"><h2>${statusHeaderHtml}${maskHtml}</h2><div class="status-grid ${statusGridClass}" id="statusCards"></div><div id="diskSection" style="padding:2px;">${diskHeaderHtml}<div id="diskContainer"></div></div></div>
-          <div class="panel" style="flex:0 0 auto;"><h2>Network Info ${buildLiveToggle('networkLiveToggle',networkLive)}</h2><div class="network-grid ${networkGridClass}" id="networkCards"><div><span class="section-subtitle">NAT</span><div id="natInfo">loading...</div></div><div><span class="section-subtitle">Traffic</span><div id="trafficStats">-</div><span class="section-subtitle" style="margin-top:4px;">Limits</span><div id="networkLimits">-</div></div></div></div>
-          <div class="panel" style="flex:1 1 auto; min-height:80px;"><h2>Live Connections ${buildLiveToggle('connectionsLiveToggle',connectionsLive)}</h2><div class="panel-body-fill" id="connectionsScroll"><table><thead><tr><th>IP</th><th>Path</th><th>Prog</th><th>KB/s</th></tr></thead><tbody id="connectionsBody"><tr><td colspan="4" class="empty-msg">No connections</td></tr></tbody></table></div></div>
-        </div>`;
-        col2.innerHTML = `<div style="display:flex; flex-direction:column; height:100%; gap:0;">
-          <div class="panel" style="flex:1 1 auto; min-height:40%;"><h2>Console Log ${buildLiveToggle('consoleLiveToggle',consoleLogLive)}</h2><div class="panel-body-fill log-container" id="consoleLogScroll"><div id="consoleLogContainer" class="empty-msg">Waiting...</div></div></div>
-          <div class="panel" style="flex:1 1 auto; min-height:50%;"><h2>Access Log ${buildLiveToggle('accessLiveToggle',accessLogLive)}</h2><div class="panel-body-fill" id="accessLogScroll"><div id="accessLogContainer">Waiting...</div></div></div>
-        </div>`;
-        col3.style.display = 'none';
-      }
-      document.getElementById('statusHeaderBtn')?.addEventListener('click',(e)=>{ if(e.target.closest('.switch')) return; if (!document.fullscreenElement) document.documentElement.requestFullscreen?.(); else document.exitFullscreen?.(); });
-      document.getElementById('maskToggle')?.addEventListener('change',onMaskChange);
-      document.getElementById('cjkToggle')?.addEventListener('change',onCJKChange);
-      document.getElementById('accessLiveToggle')?.addEventListener('change',(e)=>setLiveStateAndReconfig(CONFIG.STORAGE_KEYS.ACCESS_LIVE, e.target.checked, 'access'));
-      document.getElementById('consoleLiveToggle')?.addEventListener('change',(e)=>setLiveStateAndReconfig(CONFIG.STORAGE_KEYS.CONSOLE_LIVE, e.target.checked, 'console'));
-      document.getElementById('connectionsLiveToggle')?.addEventListener('change',(e)=>setLiveStateAndReconfig(CONFIG.STORAGE_KEYS.CONNECTIONS_LIVE, e.target.checked, 'connections'));
-      document.getElementById('disksLiveToggle')?.addEventListener('change',(e)=>setLiveStateAndReconfig(CONFIG.STORAGE_KEYS.DISKS_LIVE, e.target.checked, 'disks'));
-      document.getElementById('networkLiveToggle')?.addEventListener('change',(e)=>setLiveStateAndReconfig(CONFIG.STORAGE_KEYS.NETWORK_LIVE, e.target.checked, 'network'));
-      setupScrollable(document.getElementById('connectionsScroll'));
-      setupScrollable(document.getElementById('accessLogScroll'));
-      setupScrollable(document.getElementById('consoleLogScroll'));
-      renderConnections();
-    }
+  // ==================== INIT ====================
+  function init() {
+    build();
 
-    function init(){ 
-      buildLayout(); 
-      refreshStatus(); 
-      refreshDisks(); 
-      refreshNetwork(true); 
-      fetchOnceAccessLog(); 
-      fetchOnceConsoleLog(); 
-      setInterval(refreshStatus, CONFIG.REFRESH_STATUS); 
-      manageLiveIntervals(); 
-      restartConnectionsStream(); 
-      restartAccessStream(); 
-      restartConsoleStream(); 
-      restartTrafficStream(); 
-      setTimeout(()=>renderConnections(),500); 
-      window.addEventListener('resize',()=>{ if(detectNarrow()!==isNarrow) { buildLayout(); renderAccessLog(); renderConsoleLog(); renderConnections(); } }); 
-    }
-    init();
-  })();
+    // 一次性数据
+    refreshS(); refreshD(); refreshN(true);
+
+    // Log：live 开启→持续SSE；live 关闭→预读后自动关闭
+    if (liveA) startAccess(); else preloadLog('log', accLog, renderAccess);
+    if (liveC) startConsole(); else preloadLog('console', conLog, renderConsole);
+
+    // Connections
+    startConns();
+
+    // Traffic：live 开启→持续SSE；live 关闭→预读一条后关闭
+    if (liveN) startNet(); else preloadTraffic();
+
+    manageIntS(); manageIntDN();
+    setTimeout(()=>renderConns(),500);
+
+    window.addEventListener('resize',()=>{ if(isNarrow()!==narrow){ build(); renderAccess(); renderConsole(); renderConns(); } });
+  }
+
+  init();
+})();
 </script>
 </body>
 </html>
