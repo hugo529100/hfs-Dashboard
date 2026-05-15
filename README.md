@@ -1,4 +1,5 @@
 Admin dashboard page. Access via http://your-ip/dashboard or /dashboard.html (admin login required).
+
 It is recommended not to keep Network Info and Live Connections enabled continuously, or to enable only one of them at a time, because enabling multiple live connections simultaneously may cause server and browser lag, or even data packet loss.
 
 
