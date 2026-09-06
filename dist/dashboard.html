@@ -213,6 +213,11 @@
     .countdown-text { font-size: 9px; color: var(--orange-faint-contrast); margin-left: 6px; }
     .section-subtitle { font-size: 8px; text-transform: uppercase; color: var(--orange-comment-contrast); letter-spacing: 0.3px; margin-bottom: 2px; display: block; }
     .header-controls { display: flex; align-items: center; gap: 8px; }
+    
+    .lazy-ctrl { display: flex; align-items: center; gap: 4px; font-size: 9px; color: var(--orange-faint-contrast); }
+    .lazy-ctrl input { background: var(--orange-button-bg); color: var(--orange-text); border: 1px solid var(--orange-grid-contrast); padding: 0 2px; width: 40px; font-size: 9px; font-family: inherit; }
+    .lazy-ctrl input:focus { outline: 1px solid var(--orange-focus-color); }
+    .lazy-ctrl label { color: var(--orange-comment-contrast); }
   </style>
 </head>
 <body>
@@ -227,20 +232,58 @@
   // ==================== CONFIG ====================
   const CONF = {
     REFRESH_STATUS: 3000,
-    REFRESH_DISKS: 30000,
-    REFRESH_NETWORK: 1000,
+    REFRESH_NETWORK: 3000,  // 从1000改为3000，降低CPU压力
     MAX_CONNECTIONS: 30,
     MAX_LOGS: 100,
     HASH_LEN: 16,
     PRELOAD_TIMEOUT: 2000,
     PRELOAD_MAX: 100,
+    LAZY_SYNC_INTERVAL: 30 * 60 * 1000,
+    LAZY_SYNC_DURATION: 3000,
     KEYS: {
       MASK: 'hfs_mask', CJK: 'hfs_cjk',
       STATUS: 'hfs_status_live', ACCESS: 'hfs_access_live',
       CONSOLE: 'hfs_console_live', CONNS: 'hfs_conns_live',
-      DISKS: 'hfs_disks_live', NET: 'hfs_net_live'
+      DISKS: 'hfs_disks_live', NET: 'hfs_net_live',
+      LAZY_INTERVAL: 'hfs_lazy_interval'
     }
   };
+
+  // ==================== RING BUFFER (替代数组+shift) ====================
+  class RingBuffer {
+    constructor(size) {
+      this.size = size;
+      this.buffer = [];
+      this.index = 0;
+      this.length = 0;
+    }
+    push(item) {
+      if (this.length < this.size) {
+        this.buffer.push(item);
+        this.length++;
+      } else {
+        this.buffer[this.index] = item;
+        this.index = (this.index + 1) % this.size;
+      }
+    }
+    toArray() {
+      if (this.length === 0) return [];
+      if (this.length < this.size) return this.buffer.slice();
+      // 环形缓冲区按顺序输出
+      const result = [];
+      for (let i = 0; i < this.size; i++) {
+        result.push(this.buffer[(this.index + i) % this.size]);
+      }
+      return result;
+    }
+    clear() {
+      this.buffer = [];
+      this.index = 0;
+      this.length = 0;
+    }
+    get size() { return this._size; }
+    set size(v) { this._size = v; }
+  }
 
   // ==================== UTILS ====================
   const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -273,30 +316,73 @@
   let cjkOn = prefl(CONF.KEYS.CJK,'true')==='true';
   const cjkR = '█';
 
-  let liveS = prefl(CONF.KEYS.STATUS,'true')==='true';
-  let liveA = prefl(CONF.KEYS.ACCESS,'true')==='true';
-  let liveC = prefl(CONF.KEYS.CONSOLE,'true')==='true';
+  let liveS = prefl(CONF.KEYS.STATUS,'false')==='true';
+  let liveA = prefl(CONF.KEYS.ACCESS,'false')==='true';
+  let liveC = prefl(CONF.KEYS.CONSOLE,'false')==='true';
   let liveConn = prefl(CONF.KEYS.CONNS,'false')==='true';
-  let liveD = prefl(CONF.KEYS.DISKS,'true')==='true';
+  let liveD = prefl(CONF.KEYS.DISKS,'false')==='true';
   let liveN = prefl(CONF.KEYS.NET,'false')==='true';
 
+  let lazyInterval = parseInt(prefl(CONF.KEYS.LAZY_INTERVAL, '30')) || 30;
+  lazyInterval = Math.max(1, Math.min(1440, lazyInterval));
+
   let cfgCache = null;
-  let intS = null, intD = null, intN = null;
+  let intS = null, intN = null;
   let esA = null, esC = null, esConn = null, esNet = null;
+  let esDisk = null;
   const tmpSSE = new Set();
+  
+  let lazySyncTimer = null;
+  let isLazySyncing = false;
+  let lazyCountdown = lazyInterval * 60;
 
-  // ==================== SSE UTILS ====================
-  const closeES = s => { if(s){ s.onmessage=null; s.onerror=null; s.close(); } return null; };
-  const addTmp = s => { tmpSSE.add(s); return s; };
-  const rmTmp = s => { tmpSSE.delete(s); return null; };
-  const closeTmp = s => { s.onmessage=null; s.onerror=null; s.close(); rmTmp(s); };
+  // 环形缓冲区
+  const accLog = new RingBuffer(CONF.MAX_LOGS * 2);
+  const conLog = new RingBuffer(CONF.MAX_LOGS * 2);
 
-  const cleanup = () => {
-    esA=closeES(esA); esC=closeES(esC); esConn=closeES(esConn); esNet=closeES(esNet);
-    tmpSSE.forEach(s=>{ s.onmessage=null; s.onerror=null; s.close(); }); tmpSSE.clear();
-    clearInterval(intS); clearInterval(intD); clearInterval(intN);
+  // ==================== 彻底清理 EventSource ====================
+  const hardCloseES = (s) => {
+    if (s) {
+      try {
+        s.onmessage = null;
+        s.onerror = null;
+        s.onopen = null;
+        s.close();
+      } catch(e) {}
+    }
+    return null;
   };
-  window.addEventListener('beforeunload', cleanup);
+
+  const closeTmp = (s) => {
+    if (s) {
+      hardCloseES(s);
+      tmpSSE.delete(s);
+    }
+  };
+
+  const closeAllTmp = () => {
+    for (const s of tmpSSE) {
+      hardCloseES(s);
+    }
+    tmpSSE.clear();
+  };
+
+  // ==================== 清理所有连接 ====================
+  const cleanupAll = () => {
+    esA = hardCloseES(esA);
+    esC = hardCloseES(esC);
+    esConn = hardCloseES(esConn);
+    esNet = hardCloseES(esNet);
+    esDisk = hardCloseES(esDisk);
+    closeAllTmp();
+    clearInterval(intS);
+    clearInterval(intN);
+    clearInterval(lazySyncTimer);
+    intS = null;
+    intN = null;
+    lazySyncTimer = null;
+  };
+  window.addEventListener('beforeunload', cleanupAll);
 
   // ==================== CONFIG CACHE ====================
   async function getCfg() {
@@ -305,73 +391,225 @@
   }
   function clrCfg() { cfgCache = null; }
 
-  // ==================== LOG PRELOAD ====================
-  function preloadLog(file, arr, renderFn) {
-    arr.length = 0;
-    const src = new EventSource('/~/api/get_log?file='+file);
-    addTmp(src); let n = 0;
-    const done = () => { closeTmp(src); renderFn(); };
-    src.onmessage = e => {
-      if (e.data?.trim()) { arr.push(e.data); n++; if (n >= CONF.PRELOAD_MAX) done(); }
+  // ==================== LOG PRELOAD (修复版) ====================
+  function preloadLog(file, logBuffer, renderFn) {
+    logBuffer.clear();
+    const src = new EventSource('/~/api/get_log?file=' + file);
+    let n = 0;
+    let done = false;
+
+    const finish = () => {
+      if (done) return;
+      done = true;
+      if (src) {
+        src.onmessage = null;
+        src.onerror = null;
+        src.onopen = null;
+        src.close();
+      }
+      renderFn();
     };
-    src.onerror = () => done();
-    setTimeout(() => { if (tmpSSE.has(src)) done(); }, CONF.PRELOAD_TIMEOUT);
+
+    src.onmessage = e => {
+      if (done) return;
+      if (e.data?.trim()) {
+        logBuffer.push(e.data);
+        n++;
+        if (n >= CONF.PRELOAD_MAX) {
+          finish();
+        }
+      }
+    };
+    src.onerror = () => finish();
+    src.onopen = () => {};
+    setTimeout(finish, CONF.PRELOAD_TIMEOUT);
   }
 
   function preloadTraffic() {
     const src = new EventSource('/~/api/get_connection_stats?');
-    addTmp(src); let ok = false;
-    const done = () => { closeTmp(src); };
+    let ok = false;
+    const done = () => {
+      if (src) {
+        src.onmessage = null;
+        src.onerror = null;
+        src.onopen = null;
+        src.close();
+      }
+    };
     src.onmessage = e => {
       if (ok) return;
-      try { const d=JSON.parse(e.data); if(d){ ok=true; updateTraffic(d); done(); } } catch(err) {}
+      try {
+        const d = JSON.parse(e.data);
+        if (d) {
+          ok = true;
+          updateTraffic(d);
+          done();
+        }
+      } catch(err) {}
     };
     src.onerror = () => done();
-    setTimeout(() => { if (tmpSSE.has(src)) done(); }, 2000);
+    setTimeout(done, 2000);
+  }
+
+  // ==================== DISK SSE ====================
+  function startDiskSSE() {
+    esDisk = hardCloseES(esDisk);
+    if (!liveD && !isLazySyncing) {
+      refreshD();
+      return;
+    }
+    esDisk = new EventSource('/~/api/get_disk_spaces?');
+    let gotData = false;
+    esDisk.onmessage = e => {
+      if (!liveD && !isLazySyncing) return;
+      try {
+        const d = JSON.parse(e.data);
+        if (d && Array.isArray(d)) {
+          renderDiskData(d);
+          gotData = true;
+          if (isLazySyncing) {
+            setTimeout(() => endLazySync('disks'), 500);
+          }
+        }
+      } catch(err) {}
+    };
+    esDisk.onerror = () => {
+      esDisk = hardCloseES(esDisk);
+      if (liveD && !isLazySyncing) setTimeout(startDiskSSE, 3000);
+      if (isLazySyncing) endLazySync('disks');
+    };
+  }
+
+  function renderDiskData(disks) {
+    const c = document.getElementById('diskC'); if(!c) return;
+    if(!Array.isArray(disks)||!disks.length){
+      c.innerHTML='<div style="color:var(--orange-faint-contrast);">No disk data</div>';
+      return;
+    }
+    c.innerHTML=disks.map(d=>{
+      const t=d.total||0, f=d.free||0, u=t-f, p=t>0?(u/t*100):0, fp=t>0?(f/t*100):100, ff=fbytes(f);
+      return `<div class="disk-card"><div class="disk-row"><span class="disk-name">${esc(d.name||'?')}</span><div class="disk-bar-bg"><div class="disk-bar-fill" style="width:${p.toFixed(0)}%;"></div></div><span class="disk-info">${ff} (${fp.toFixed(0)}%)</span></div></div>`;
+    }).join('');
   }
 
   // ==================== LIVE STREAMS ====================
   function startAccess() {
-    esA = closeES(esA);
-    if (!liveA) return;
+    esA = hardCloseES(esA);
+    if (!liveA && !isLazySyncing) return;
     esA = new EventSource('/~/api/get_log?file=log');
+    let receivedCount = 0;
     esA.onmessage = e => {
-      if (e.data?.trim() && liveA) { accLog.push(e.data); while(accLog.length>CONF.MAX_LOGS*2) accLog.shift(); renderAccess(); }
+      if (e.data?.trim()) {
+        accLog.push(e.data);
+        if (isLazySyncing) {
+          receivedCount++;
+          if (receivedCount >= CONF.PRELOAD_MAX) {
+            setTimeout(() => endLazySync('access'), 500);
+          }
+        }
+        renderAccess();
+      }
     };
-    esA.onerror = () => { esA=closeES(esA); if(liveA) setTimeout(startAccess,3000); };
+    esA.onerror = () => {
+      esA = hardCloseES(esA);
+      if(liveA && !isLazySyncing) setTimeout(startAccess,3000);
+      if(isLazySyncing) endLazySync('access');
+    };
   }
 
   function startConsole() {
-    esC = closeES(esC);
-    if (!liveC) return;
+    esC = hardCloseES(esC);
+    if (!liveC && !isLazySyncing) return;
     esC = new EventSource('/~/api/get_log?file=console');
+    let receivedCount = 0;
     esC.onmessage = e => {
-      if (e.data?.trim() && liveC) { conLog.push(e.data); while(conLog.length>CONF.MAX_LOGS*2) conLog.shift(); renderConsole(); }
+      if (e.data?.trim()) {
+        conLog.push(e.data);
+        if (isLazySyncing) {
+          receivedCount++;
+          if (receivedCount >= CONF.PRELOAD_MAX) {
+            setTimeout(() => endLazySync('console'), 500);
+          }
+        }
+        renderConsole();
+      }
     };
-    esC.onerror = () => { esC=closeES(esC); if(liveC) setTimeout(startConsole,3000); };
+    esC.onerror = () => {
+      esC = hardCloseES(esC);
+      if(liveC && !isLazySyncing) setTimeout(startConsole,3000);
+      if(isLazySyncing) endLazySync('console');
+    };
   }
 
   function startConns() {
-    esConn = closeES(esConn);
-    if (!liveConn) { connMap.clear(); renderConns(); return; }
+    esConn = hardCloseES(esConn);
+    if (!liveConn && !isLazySyncing) { connMap.clear(); renderConns(); return; }
     esConn = new EventSource('/~/api/get_connections?');
     esConn.onmessage = e => {
-      if (!liveConn) return;
+      if (!liveConn && !isLazySyncing) return;
       try {
         const d=JSON.parse(e.data); if(!Array.isArray(d)) return;
         d.forEach(r=>{ const t=r[0],p=r[1]; if(t==='ready'||t==='props'||!p?.ip) return; const k=p.ip+':'+(p.port||'0'); if(t==='+') connMap.set(k,p); else if(t==='=') Object.assign(connMap.get(k)||{},p); else if(t==='-') connMap.delete(k); });
         renderConns();
+        if (isLazySyncing) {
+          if (d.length > 0) setTimeout(() => endLazySync('conns'), 500);
+        }
       } catch(err) {}
     };
-    esConn.onerror = () => { esConn=closeES(esConn); if(liveConn) setTimeout(startConns,3000); };
+    esConn.onerror = () => {
+      esConn = hardCloseES(esConn);
+      if(liveConn && !isLazySyncing) setTimeout(startConns,3000);
+      if(isLazySyncing) endLazySync('conns');
+    };
   }
 
   function startNet() {
-    esNet = closeES(esNet);
-    if (!liveN) return;
+    esNet = hardCloseES(esNet);
+    if (!liveN && !isLazySyncing) return;
     esNet = new EventSource('/~/api/get_connection_stats?');
-    esNet.onmessage = e => { try { const d=JSON.parse(e.data); if(d&&liveN) updateTraffic(d); } catch(err) {} };
-    esNet.onerror = () => { esNet=closeES(esNet); if(liveN) setTimeout(startNet,3000); };
+    esNet.onmessage = e => {
+      try { const d=JSON.parse(e.data); if(d && (liveN || isLazySyncing)) {
+        updateTraffic(d);
+        if (isLazySyncing) setTimeout(() => endLazySync('net'), 500);
+      } } catch(err) {}
+    };
+    esNet.onerror = () => {
+      esNet = hardCloseES(esNet);
+      if(liveN && !isLazySyncing) setTimeout(startNet,3000);
+      if(isLazySyncing) endLazySync('net');
+    };
+  }
+
+  // ==================== LAZY SYNC ====================
+  function startLazySync() {
+    if (isLazySyncing) return;
+    isLazySyncing = true;
+    
+    if (!liveA) startAccess();
+    if (!liveC) startConsole();
+    if (!liveConn) startConns();
+    if (!liveN) startNet();
+    if (!liveD) startDiskSSE();
+    if (!liveS) refreshS();
+    
+    setTimeout(() => {
+      if (isLazySyncing) endLazySync('timeout');
+    }, CONF.LAZY_SYNC_DURATION);
+  }
+
+  function endLazySync(reason) {
+    if (!isLazySyncing) return;
+    isLazySyncing = false;
+    
+    if (!liveA) { esA = hardCloseES(esA); }
+    if (!liveC) { esC = hardCloseES(esC); }
+    if (!liveConn) { esConn = hardCloseES(esConn); }
+    if (!liveN) { esNet = hardCloseES(esNet); }
+    if (!liveD) { esDisk = hardCloseES(esDisk); }
+    
+    renderAccess();
+    renderConsole();
+    renderConns();
   }
 
   // ==================== TOGGLE ====================
@@ -379,11 +617,11 @@
     spref(key, String(val));
     switch(type) {
       case 's': liveS=val; if(val) clrCfg(); manageIntS(); refreshS(); break;
-      case 'a': liveA=val; if(val) startAccess(); else { esA=closeES(esA); renderAccess(); } break;
-      case 'c': liveC=val; if(val) startConsole(); else { esC=closeES(esC); renderConsole(); } break;
+      case 'a': liveA=val; if(val) startAccess(); else { esA=hardCloseES(esA); renderAccess(); } break;
+      case 'c': liveC=val; if(val) startConsole(); else { esC=hardCloseES(esC); renderConsole(); } break;
       case 'conn': liveConn=val; startConns(); break;
-      case 'd': liveD=val; manageIntDN(); refreshD(); break;
-      case 'n': liveN=val; manageIntDN(); if(val) startNet(); else { esNet=closeES(esNet); preloadTraffic(); } break;
+      case 'd': liveD=val; startDiskSSE(); break;
+      case 'n': liveN=val; if(val) startNet(); else { esNet=hardCloseES(esNet); preloadTraffic(); } break;
     }
   }
 
@@ -404,11 +642,22 @@
   const fbytes = b => { if(b==null) return '-'; if(b>=1099511627776) return (b/1099511627776).toFixed(1)+' TB'; if(b>=1073741824) return (b/1073741824).toFixed(1)+' GB'; if(b>=1048576) return (b/1048576).toFixed(1)+' MB'; return (b/1024).toFixed(1)+' KB'; };
 
   // ==================== COUNTDOWN ====================
-  let cdS = CONF.REFRESH_STATUS/1000, cdD = CONF.REFRESH_DISKS/1000;
+  let cdS = CONF.REFRESH_STATUS/1000;
   setInterval(() => {
-    cdS=Math.max(0,cdS-1); cdD=Math.max(0,cdD-1);
-    const es=document.getElementById('cdStatus'), ed=document.getElementById('cdDisk');
-    if(es) es.textContent=`${cdS}s`; if(ed) ed.textContent=`${cdD}s`;
+    cdS=Math.max(0,cdS-1);
+    const es=document.getElementById('cdStatus');
+    if(es) es.textContent=`${cdS}s`;
+    
+    lazyCountdown = Math.max(0, lazyCountdown - 1);
+    const el = document.getElementById('lazyCd');
+    if(el) {
+      const m = Math.floor(lazyCountdown / 60);
+      const s = lazyCountdown % 60;
+      el.textContent = `${m}m ${s}s`;
+    }
+    if (lazyCountdown === 0) {
+      lazyCountdown = lazyInterval * 60;
+    }
   }, 1000);
 
   // ==================== REFRESH ====================
@@ -434,20 +683,19 @@
       ];
       c.innerHTML=cards.map(x=>`<div class="stat-card"><span class="stat-label">${esc(x.l)}</span><span class="stat-value${x.k?' '+x.k:''}">${esc(x.v)}</span></div>`).join('');
       cdS=CONF.REFRESH_STATUS/1000;
+      if (isLazySyncing) endLazySync('status');
     } catch(e) { const c=document.getElementById('scards'); if(c) c.innerHTML='<div class="stat-card"><span class="stat-value offline">Error</span></div>'; }
   }
 
   async function refreshD() {
     try {
       const disks=await api('/~/api/get_disk_spaces');
-      const c=document.getElementById('diskC'); if(!c) return;
-      if(!Array.isArray(disks)||!disks.length){ c.innerHTML='<div style="color:var(--orange-faint-contrast);">No disk data</div>'; return; }
-      c.innerHTML=disks.map(d=>{
-        const t=d.total||0, f=d.free||0, u=t-f, p=t>0?(u/t*100):0, fp=t>0?(f/t*100):100, ff=fbytes(f);
-        return `<div class="disk-card"><div class="disk-row"><span class="disk-name">${esc(d.name||'?')}</span><div class="disk-bar-bg"><div class="disk-bar-fill" style="width:${p.toFixed(0)}%;"></div></div><span class="disk-info">${ff} (${fp.toFixed(0)}%)</span></div></div>`;
-      }).join('');
-      cdD=CONF.REFRESH_DISKS/1000;
-    } catch(e) {}
+      renderDiskData(disks);
+      if (isLazySyncing) endLazySync('disks');
+    } catch(e) {
+      const c=document.getElementById('diskC');
+      if(c) c.innerHTML='<div style="color:var(--orange-faint-contrast);">Error loading disks</div>';
+    }
   }
 
   async function refreshN(_) {
@@ -496,9 +744,7 @@
     }).join('');
   }
 
-  // ==================== LOG RENDER ====================
-  const accLog=[], conLog=[];
-
+  // ==================== LOG RENDER (增量更新) ====================
   function fmtAccess(raw) {
     try {
       const a=JSON.parse(raw); if(!Array.isArray(a)) return [esc(mpath(raw,maskOn,cjkOn,cjkR))];
@@ -517,57 +763,165 @@
   }
 
   function renderAccess() {
-    const c=document.getElementById('accLogC'); if(!c) return;
-    if(!accLog.length){ c.innerHTML='<div class="empty-msg">Waiting...</div>'; return; }
-    const ls=[]; accLog.slice(-CONF.MAX_LOGS).forEach(e=>{ const f=fmtAccess(e); if(Array.isArray(f)) ls.push(...f); else ls.push(f); });
-    c.innerHTML=ls.map(l=>`<div class="access-log-line">${l}</div>`).join('');
-    const sc=document.getElementById('accLogS'); if(sc) sbot(sc);
+    const container = document.getElementById('accLogC');
+    if (!container) return;
+    const lines = accLog.toArray();
+    if (lines.length === 0) {
+      container.innerHTML = '<div class="empty-msg">Waiting...</div>';
+      return;
+    }
+    const toRender = lines.slice(-CONF.MAX_LOGS);
+    // 扁平化
+    let flatLines = [];
+    for (const raw of toRender) {
+      const f = fmtAccess(raw);
+      if (Array.isArray(f)) flatLines.push(...f);
+      else flatLines.push(f);
+    }
+    // 限高
+    if (flatLines.length > CONF.MAX_LOGS) {
+      flatLines = flatLines.slice(-CONF.MAX_LOGS);
+    }
+    // 增量更新
+    const children = container.children;
+    if (children.length === flatLines.length && children.length > 0) {
+      for (let i = 0; i < flatLines.length; i++) {
+        const newHtml = flatLines[i];
+        if (children[i].innerHTML !== newHtml) {
+          children[i].innerHTML = newHtml;
+        }
+      }
+    } else {
+      container.innerHTML = flatLines.map(l => `<div class="access-log-line">${l}</div>`).join('');
+    }
+    const sc = document.getElementById('accLogS');
+    if (sc) sbot(sc);
   }
 
   function renderConsole() {
-    const c=document.getElementById('conLogC'); if(!c) return;
-    if(!conLog.length){ c.innerHTML='<div class="empty-msg">Waiting...</div>'; return; }
-    const ls=[]; conLog.slice(-CONF.MAX_LOGS).forEach(raw=>{
+    const container = document.getElementById('conLogC');
+    if (!container) return;
+    const lines = conLog.toArray();
+    if (lines.length === 0) {
+      container.innerHTML = '<div class="empty-msg">Waiting...</div>';
+      return;
+    }
+    const toRender = lines.slice(-CONF.MAX_LOGS);
+    let flatLines = [];
+    for (const raw of toRender) {
       try {
-        const a=JSON.parse(raw); if(!Array.isArray(a)){ ls.push(esc(mpath(raw,maskOn,cjkOn,cjkR))); return; }
-        a.forEach(x=>{
-          if(Array.isArray(x)&&x[1]?.ts){
-            const d=x[1], ts=new Date(d.ts).toLocaleTimeString(); let msg=d.msg||''; msg=mpath(msg,maskOn,cjkOn,cjkR);
-            let ip=''; if(d.ip) ip=`<span class="console-ip">${esc(fip(d.ip))}</span> `;
-            const cls=d.k==='error'?'error':(d.k==='warning'?'warning':'');
-            ls.push(`<div class="console-entry ${cls}"><span class="ts">${ts}</span> ${ip}<span class="msg">${esc(msg)}</span></div>`);
-          } else ls.push(esc(mpath(JSON.stringify(x),maskOn,cjkOn,cjkR)));
+        const a = JSON.parse(raw);
+        if (!Array.isArray(a)) {
+          flatLines.push(esc(mpath(raw, maskOn, cjkOn, cjkR)));
+          continue;
+        }
+        a.forEach(x => {
+          if (Array.isArray(x) && x[1]?.ts) {
+            const d = x[1], ts = new Date(d.ts).toLocaleTimeString();
+            let msg = d.msg || '';
+            msg = mpath(msg, maskOn, cjkOn, cjkR);
+            let ip = '';
+            if (d.ip) ip = `<span class="console-ip">${esc(fip(d.ip))}</span> `;
+            const cls = d.k === 'error' ? 'error' : (d.k === 'warning' ? 'warning' : '');
+            flatLines.push(`<div class="console-entry ${cls}"><span class="ts">${ts}</span> ${ip}<span class="msg">${esc(msg)}</span></div>`);
+          } else {
+            flatLines.push(esc(mpath(JSON.stringify(x), maskOn, cjkOn, cjkR)));
+          }
         });
-      } catch(e) { ls.push(esc(mpath(raw,maskOn,cjkOn,cjkR))); }
-    });
-    c.innerHTML=ls.join('');
-    const sc=document.getElementById('conLogS'); if(sc) sbot(sc);
+      } catch(e) {
+        flatLines.push(esc(mpath(raw, maskOn, cjkOn, cjkR)));
+      }
+    }
+    if (flatLines.length > CONF.MAX_LOGS) {
+      flatLines = flatLines.slice(-CONF.MAX_LOGS);
+    }
+    const children = container.children;
+    if (children.length === flatLines.length && children.length > 0) {
+      for (let i = 0; i < flatLines.length; i++) {
+        const newHtml = flatLines[i];
+        if (children[i].outerHTML !== newHtml) {
+          // 用 outerHTML 比较更准确，但设置 innerHTML 即可
+          if (children[i].innerHTML !== newHtml) {
+            children[i].innerHTML = newHtml;
+          }
+        }
+      }
+    } else {
+      container.innerHTML = flatLines.join('');
+    }
+    const sc = document.getElementById('conLogS');
+    if (sc) sbot(sc);
   }
 
   // ==================== INTERVALS ====================
-  function manageIntDN() {
-    clearInterval(intD); clearInterval(intN);
-    if(liveD) intD=setInterval(refreshD,CONF.REFRESH_DISKS);
-    if(liveN) intN=setInterval(()=>refreshN(false),CONF.REFRESH_NETWORK);
+  function manageIntN() {
+    clearInterval(intN);
+    if(liveN) intN = setInterval(() => refreshN(false), CONF.REFRESH_NETWORK);
   }
-  function manageIntS() { clearInterval(intS); if(liveS) intS=setInterval(refreshS,CONF.REFRESH_STATUS); }
+  function manageIntS() { clearInterval(intS); if(liveS) intS = setInterval(refreshS, CONF.REFRESH_STATUS); }
+  
+  function setupLazySync() {
+    clearInterval(lazySyncTimer);
+    const intervalMs = lazyInterval * 60 * 1000;
+    lazySyncTimer = setInterval(() => {
+      if (!isLazySyncing) {
+        const hasOffModules = !liveS || !liveA || !liveC || !liveConn || !liveD || !liveN;
+        if (hasOffModules) {
+          startLazySync();
+        }
+      }
+      lazyCountdown = lazyInterval * 60;
+    }, intervalMs);
+  }
 
   // ==================== LAYOUT ====================
   function build() {
-    const nw=isNarrow(); narrow=nw;
-    const c1=document.getElementById('col1Container'), c2=document.getElementById('col2Container'), c3=document.getElementById('col3Container');
-    const maskH=`<div class="mask-toggle-container"><span class="mask-label-text">Mask</span><label class="switch"><input type="checkbox" id="maskTog" ${maskOn?'checked':''}><span class="slider"></span></label><span class="mask-label-text">CJK</span><label class="switch"><input type="checkbox" id="cjkTog" ${cjkOn?'checked':''}><span class="slider"></span></label></div>`;
-    const sgc=nw?'single-col':'double-col', ngc=nw?'single-col':'double-col';
-    const sHead=`<span class="panel-header-left" id="statusHead">HFS Status <span class="countdown-text" id="cdStatus">${cdS}s</span></span>${lvtog('liveS',liveS)}`;
-    const dHead=`<div style="display:flex;justify-content:space-between;align-items:center;padding:2px 4px;"><span style="color:var(--orange-comment-contrast);font-size:8px;text-transform:uppercase;">Disks-free <span class="countdown-text" id="cdDisk">${cdD}s</span></span>${lvtog('liveD',liveD)}</div>`;
-    const conHead=`<div class="header-controls">${maskH}${lvtog('liveC',liveC)}</div>`;
+    const nw = isNarrow(); narrow = nw;
+    const c1 = document.getElementById('col1Container'), c2 = document.getElementById('col2Container'), c3 = document.getElementById('col3Container');
+    const maskH = `<div class="mask-toggle-container"><span class="mask-label-text">Mask</span><label class="switch"><input type="checkbox" id="maskTog" ${maskOn?'checked':''}><span class="slider"></span></label><span class="mask-label-text">CJK</span><label class="switch"><input type="checkbox" id="cjkTog" ${cjkOn?'checked':''}><span class="slider"></span></label></div>`;
+    const sgc = nw?'single-col':'double-col', ngc = nw?'single-col':'double-col';
+    
+    const lazyCtrl = `<span class="lazy-ctrl"><label>Lazy</label><input type="number" id="lazyIntervalInput" min="1" max="1440" value="${lazyInterval}"><label>min</label><span class="countdown-text" id="lazyCd">${Math.floor(lazyCountdown/60)}m ${lazyCountdown%60}s</span></span>`;
+    
+    const sHead = `<span class="panel-header-left" id="statusHead">HFS Status ${lazyCtrl}</span>${lvtog('liveS',liveS)}`;
+    const dHead = `<div style="display:flex;justify-content:space-between;align-items:center;padding:2px 4px;"><span style="color:var(--orange-comment-contrast);font-size:8px;text-transform:uppercase;">Disks-free</span>${lvtog('liveD',liveD)}</div>`;
+    const conHead = `<div class="header-controls">${maskH}${lvtog('liveC',liveC)}</div>`;
 
     if(!nw) {
-      c1.style.overflowY='hidden';
-      c1.innerHTML=`<div class="panel"><h2>${sHead}</h2><div class="status-grid ${sgc}" id="scards"></div><div id="diskSec" style="padding:2px;">${dHead}<div id="diskC"></div></div></div><div class="panel"><h2>Network Info ${lvtog('liveN',liveN)}</h2><div class="network-grid ${ngc}" id="netCards"><div><span class="section-subtitle">NAT</span><div id="natInfo">loading...</div></div><div><span class="section-subtitle">Traffic</span><div id="trafStats">-</div><span class="section-subtitle" style="margin-top:4px;">Limits</span><div id="netLimits">-</div></div></div></div><div class="panel"><h2>Live Connections ${lvtog('liveConn',liveConn)}</h2><div class="panel-body-fill" id="connScroll"><table><thead><tr><th>IP</th><th>User</th><th>Path</th><th>Prog</th><th>KB/s</th></tr></thead><tbody id="connsBody"><tr><td colspan="5" class="empty-msg">No active connections</td></tr></tbody></table></div></div>`;
-      c2.innerHTML=`<div class="panel"><h2>Console Log ${conHead}</h2><div class="panel-body-fill log-container" id="conLogS"><div id="conLogC" class="empty-msg">Waiting...</div></div></div>`;
-      c3.innerHTML=`<div class="panel"><h2>Access Log ${lvtog('liveA',liveA)}</h2><div class="panel-body-fill" id="accLogS"><div id="accLogC">Waiting...</div></div></div>`;
-      c3.style.display='';
+      c1.style.overflowY = 'auto';
+      c1.innerHTML = `
+        <div class="panel" style="flex-shrink:0;">
+          <h2>${sHead}</h2>
+          <div class="status-grid ${sgc}" id="scards"></div>
+          <div id="diskSec" style="padding:2px;">${dHead}<div id="diskC"></div></div>
+        </div>
+        <div class="panel" style="flex-shrink:0;">
+          <h2>Network Info ${lvtog('liveN',liveN)}</h2>
+          <div class="network-grid ${ngc}" id="netCards">
+            <div><span class="section-subtitle">NAT</span><div id="natInfo">loading...</div></div>
+            <div><span class="section-subtitle">Traffic</span><div id="trafStats">-</div><span class="section-subtitle" style="margin-top:4px;">Limits</span><div id="netLimits">-</div></div>
+          </div>
+        </div>
+      `;
+      c2.innerHTML = `
+        <div class="panel" style="flex:1 1 auto;min-height:0;">
+          <h2>Console Log ${conHead}</h2>
+          <div class="panel-body-fill log-container" id="conLogS"><div id="conLogC" class="empty-msg">Waiting...</div></div>
+        </div>
+      `;
+      c3.innerHTML = `
+        <div class="panel" style="flex:1 1 auto;min-height:0;display:flex;flex-direction:column;">
+          <h2>Live Connections ${lvtog('liveConn',liveConn)}</h2>
+          <div class="panel-body-fill" id="connScroll" style="flex:1 1 auto;min-height:80px;">
+            <table><thead><tr><th>IP</th><th>User</th><th>Path</th><th>Prog</th><th>KB/s</th></tr></thead><tbody id="connsBody"><tr><td colspan="5" class="empty-msg">No active connections</td></tr></tbody></table>
+          </div>
+        </div>
+        <div class="panel" style="flex-shrink:0;margin-top:0;">
+          <h2>Access Log ${lvtog('liveA',liveA)}</h2>
+          <div class="panel-body-fill" id="accLogS" style="min-height:50px;max-height:340px;"><div id="accLogC">Waiting...</div></div>
+        </div>
+      `;
+      c3.style.display = '';
     } else {
       c1.style.overflowY='auto';
       c1.innerHTML=`<div style="display:flex;flex-direction:column;gap:0;min-height:100%;"><div class="panel" style="flex:0 0 auto;"><h2>${sHead}</h2><div class="status-grid ${sgc}" id="scards"></div><div id="diskSec" style="padding:2px;">${dHead}<div id="diskC"></div></div></div><div class="panel" style="flex:0 0 auto;"><h2>Network Info ${lvtog('liveN',liveN)}</h2><div class="network-grid ${ngc}" id="netCards"><div><span class="section-subtitle">NAT</span><div id="natInfo">loading...</div></div><div><span class="section-subtitle">Traffic</span><div id="trafStats">-</div><span class="section-subtitle" style="margin-top:4px;">Limits</span><div id="netLimits">-</div></div></div></div><div class="panel" style="flex:0 0 auto;min-height:100px;"><h2>Live Connections ${lvtog('liveConn',liveConn)}</h2><div class="panel-body-fill" id="connScroll" style="max-height:300px;"><table><thead><tr><th>IP</th><th>Path</th><th>Prog</th><th>KB/s</th></tr></thead><tbody id="connsBody"><tr><td colspan="4" class="empty-msg">No connections</td></tr></tbody></table></div></div></div>`;
@@ -578,6 +932,19 @@
     document.getElementById('statusHead')?.addEventListener('click',e=>{ if(e.target.closest('.switch')) return; if(!document.fullscreenElement) document.documentElement.requestFullscreen?.(); else document.exitFullscreen?.(); });
     document.getElementById('maskTog')?.addEventListener('change',omask);
     document.getElementById('cjkTog')?.addEventListener('change',ocjk);
+
+    const lazyInput = document.getElementById('lazyIntervalInput');
+    if(lazyInput) {
+      lazyInput.addEventListener('change', function() {
+        let v = parseInt(this.value) || 30;
+        v = Math.max(1, Math.min(1440, v));
+        this.value = v;
+        lazyInterval = v;
+        spref(CONF.KEYS.LAZY_INTERVAL, String(v));
+        lazyCountdown = v * 60;
+        setupLazySync();
+      });
+    }
 
     bindTog('liveS',CONF.KEYS.STATUS,'s',liveS);
     bindTog('liveA',CONF.KEYS.ACCESS,'a',liveA);
@@ -602,24 +969,36 @@
   function init() {
     build();
 
-    // 一次性数据
     refreshS(); refreshD(); refreshN(true);
 
-    // Log：live 开启→持续SSE；live 关闭→预读后自动关闭
     if (liveA) startAccess(); else preloadLog('log', accLog, renderAccess);
     if (liveC) startConsole(); else preloadLog('console', conLog, renderConsole);
 
-    // Connections
     startConns();
+    startDiskSSE();
 
-    // Traffic：live 开启→持续SSE；live 关闭→预读一条后关闭
     if (liveN) startNet(); else preloadTraffic();
 
-    manageIntS(); manageIntDN();
+    manageIntS(); manageIntN();
+    setupLazySync();
+
     setTimeout(()=>renderConns(),500);
 
     window.addEventListener('resize',()=>{ if(isNarrow()!==narrow){ build(); renderAccess(); renderConsole(); renderConns(); } });
   }
+
+  // ==================== 页面可见性变化时暂停/恢复（额外优化） ====================
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      // 页面不可见时，暂停所有网络请求（通过关闭连接，但保留状态）
+      // 这里简单处理：不额外操作，因为浏览器本身会限制后台tab的CPU
+    } else {
+      // 恢复时刷新一次
+      if (liveS) refreshS();
+      if (liveD) refreshD();
+      if (liveN) refreshN(false);
+    }
+  });
 
   init();
 })();
