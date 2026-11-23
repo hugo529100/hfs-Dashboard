@@ -1,7 +1,7 @@
 exports.version = 1.6
 exports.apiRequired = 8.87
 exports.description = "Admin dashboard page. Access via http://your-ip/dashboard or /dashboard.html (admin login required)."
-exports.repo = "Hug3O/Dashboard"
+exports.repo = "hugo529100/hfs-Dashboard"
 const fs = require('fs')
 const path = require('path')
 
